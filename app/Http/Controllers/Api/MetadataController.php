@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\MetadataRequest;
 use App\ProjectMetadata;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use phpDocumentor\Reflection\Project;
@@ -19,7 +20,9 @@ class MetadataController extends Controller
      */
     public function index(MetadataRequest $request)
     {
+        /** @var Collection $metadata */
         $metadata = ProjectMetadata::where('project_id', $request->input('project_id'))->get();
+
         return response()->json($metadata, 200);
 
     }

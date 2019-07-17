@@ -15,11 +15,16 @@ class CreateMetadataTable extends Migration
     {
         Schema::create('project_metadata', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('project_id')->index();
-            $table->string('field');
-            $table->string('label');
-            $table->text('description');
-            $table->boolean('temporal');
+            $table->integer('project_id')->index(); // "pid" (project ID) of redcap project
+            $table->string('field'); // Name of the field.
+            $table->string('label'); // Label shown in REDCap web client
+            $table->text('description')->nullable();
+            $table->boolean('temporal')->default(0);
+            $table->string('category')->nullable();
+            $table->string('subcategory')->nullable();
+            $table->boolean('identifier')->nullable();
+            $table->string('time_format')->nullable();
+            $table->string('dictionary');
             $table->timestamps();
         });
     }

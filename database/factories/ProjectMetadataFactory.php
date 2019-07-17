@@ -10,6 +10,7 @@ $factory->define(\App\ProjectMetadata::class, function (Faker $faker) {
         'project_id' => $faker->numberBetween(1, 5000),
         'label' => $faker->sentence,
         'description' => $faker->paragraph,
-        'temporal' => 0
+        'temporal' => 0,
+        'dictionary' => $faker->word
     ];
 });

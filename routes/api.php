@@ -15,3 +15,7 @@ use Illuminate\Http\Request;
 
 Route::post('/metadata', 'Api\MetadataController@index')
     ->name('api.metadata.index');
+
+
+Route::post('/data', 'Api\DataController@index')
+    ->name('api.data.index');
