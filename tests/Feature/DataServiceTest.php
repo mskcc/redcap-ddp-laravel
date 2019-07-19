@@ -15,14 +15,13 @@ class DataServiceTest extends TestCase
     {
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
-            'id' => 'mrn',
+            'id' => '54321',
             'fields' => [
-                ['field' => 'mrn'],
+                ['field' => 'gender'],
                 ['field' => 'dob']
             ]
         ]);
 
         $response->assertStatus(200);
     }
-
 }

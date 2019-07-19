@@ -15,9 +15,6 @@ class DataController extends Controller
      */
     public function index(DataRequest $request)
     {
-        dd($request);
-
         return response()->json([], 200);
-
     }
 }
