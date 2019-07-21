@@ -39,7 +39,10 @@ class MetadataServiceTest extends TestCase
             'label' => 'Subject Birth Date'
         ]);
 
-        $response = $this->post('/api/metadata', [
+        //Act, simulates post from REDCap
+        $response = $this->withHeaders([
+            'content-type' => 'application/x-www-form-urlencoded'
+        ])->post('/api/metadata', [
             'project_id' => '12345',
         ]);
 

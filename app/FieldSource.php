@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProjectMetadata extends Model
+class FieldSource extends Model
 {
     //
 }
