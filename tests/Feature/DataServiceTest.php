@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\DataRetrieval\DataGateway;
-use App\DataRetrieval\FakeDataGateway;
+use App\DataRetrieval\DataGatewayInterface;
 use App\FieldSource;
 use App\ProjectMetadata;
 use Tests\TestCase;
@@ -14,9 +14,17 @@ class DataServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    public function setUp() : void
+    {
+        parent::setUp();
+        $this->datagateway = new DataGateway();
+        $this->app->instance(DataGatewayInterface::class, $this->datagateway);
+    }
+
+        /** @test */
     public function data_service_endpoint_accepts_POST_with_valid_params()
     {
+
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
             'id' => '54321',
@@ -33,9 +41,6 @@ class DataServiceTest extends TestCase
     public function data_can_be_retrieved_for_a_specific_field()
     {
         //Arrange
-        $dataGateway = new FakeDataGateway();
-
-        $this->app->instance(DataGateway::class, $dataGateway);
 
         factory(ProjectMetadata::class)->create([
             'project_id' => 12345,
@@ -45,8 +50,7 @@ class DataServiceTest extends TestCase
         ]);
 
         factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'query' => 'SELECT dob from PATIENT_TABLE'
+            'name' => 'dob'
         ]);
 
         //Act, simulates post from REDCap
