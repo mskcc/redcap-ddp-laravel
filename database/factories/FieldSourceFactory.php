@@ -11,7 +11,7 @@ $factory->define(\App\FieldSource::class, function (Faker $faker) {
     return [
         'name' => $field,
         'query' => @"SELECT {$field} FROM PATIENT",
-        'source' => 'Data_Warehouse',
+        'data_source' => 'Data_Warehouse',
         'temporal' => false
     ];
 });

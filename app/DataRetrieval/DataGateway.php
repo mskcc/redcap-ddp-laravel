@@ -3,6 +3,7 @@
 
 namespace App\DataRetrieval;
 
+use App\DatabaseSource;
 use App\FieldSource;
 use App\ProjectMetadata;
 
@@ -18,7 +19,7 @@ class DataGateway implements DataGatewayInterface
 
         $requestedData->each(function($field) {
 
-            $source = FieldSource::where('name', $field->dictionary)->get();
+            $fieldSource = FieldSource::where('name', $field->dictionary)->get();
 
             //TODO: implement logic for data queries
 

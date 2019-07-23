@@ -41,7 +41,6 @@ class DataServiceTest extends TestCase
     public function data_can_be_retrieved_for_a_specific_field()
     {
         //Arrange
-
         factory(ProjectMetadata::class)->create([
             'project_id' => 12345,
             'field' => 'birth_date',
@@ -50,7 +49,8 @@ class DataServiceTest extends TestCase
         ]);
 
         factory(FieldSource::class)->create([
-            'name' => 'dob'
+            'name' => 'dob',
+            'query' => "SELECT date_of_birth from dbo.patient"
         ]);
 
         //Act, simulates post from REDCap

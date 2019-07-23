@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateFieldSourcesTable extends Migration
+class CreateDatabaseSourcesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,14 @@ class CreateFieldSourcesTable extends Migration
      */
     public function up()
     {
-        Schema::create('field_sources', function (Blueprint $table) {
+        Schema::create('data_sources', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('query');
-            $table->string('data_source');
-            $table->dateTime('anchor_date')->nullable();
-            $table->boolean('temporal')->default(0);
+            $table->string('name')->unique()->index();
+            $table->string('type')->index();
+            $table->json('properties');
             $table->timestamps();
         });
+
     }
 
     /**
@@ -31,6 +30,6 @@ class CreateFieldSourcesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('field_sources');
+        Schema::dropIfExists('data_sources');
     }
 }
