@@ -23,15 +23,16 @@ class DataSourceTest extends TestCase
             'server' => '127.0.0.1'
         ]);
 
-        $dbSource = factory(DataSource::class)->create([
-            'name' => 'internal_data_warehouse',
-            'source_id' => $databaseSource->id,
-            'source_type' => DatabaseSource::class
+        $dataSource = factory(DataSource::class)->make([
+            'name' => 'internal_data_warehouse'
         ]);
 
-        $this->assertEquals('internal_data_warehouse', $dbSource->name);
+        $dataSource->source()->associate($databaseSource);
+        $dataSource->save();
 
-        $this->assertEquals('127.0.0.1', $dbSource->source->server);
+        $this->assertEquals('internal_data_warehouse', $dataSource->name);
+
+        $this->assertEquals('127.0.0.1', $dataSource->source->server);
 
     }
 
@@ -42,15 +43,16 @@ class DataSourceTest extends TestCase
             'url' => 'http://url.to.api/'
         ]);
 
-        $dbSource = factory(DataSource::class)->create([
-            'name' => 'external_web_service_ABC',
-            'source_id' => $webserviceSource->id,
-            'source_type' => WebserviceSource::class
+        $dataSource = factory(DataSource::class)->make([
+            'name' => 'external_web_service_ABC'
         ]);
 
-        $this->assertEquals('external_web_service_ABC', $dbSource->name);
+        $dataSource->source()->associate($webserviceSource);
+        $dataSource->save();
 
-        $this->assertEquals('http://url.to.api/', $dbSource->source->url);
+        $this->assertEquals('external_web_service_ABC', $dataSource->name);
+
+        $this->assertEquals('http://url.to.api/', $dataSource->source->url);
 
     }
 
