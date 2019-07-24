@@ -2,16 +2,9 @@
 
 namespace App;
 
-class WebserviceSource extends DataSource
+use Illuminate\Database\Eloquent\Model;
+
+class WebserviceSource extends Model
 {
-    public $table = 'data_sources';
 
-    public static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('webservice', function (Builder $builder) {
-            $builder->where('type', 'webservice');
-        });
-    }
 }

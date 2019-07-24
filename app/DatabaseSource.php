@@ -2,17 +2,9 @@
 
 namespace App;
 
-class DatabaseSource extends DataSource
+use Illuminate\Database\Eloquent\Model;
+
+class DatabaseSource extends Model
 {
 
-    public $table = 'data_sources';
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope('database', function (Builder $builder) {
-            $builder->where('type', 'database');
-        });
-    }
 }

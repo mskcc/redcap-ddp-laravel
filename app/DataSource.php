@@ -4,7 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-abstract class DataSource extends Model
+class DataSource extends Model
 {
-
+    public function source() {
+        return $this->morphTo();
+   }
 }

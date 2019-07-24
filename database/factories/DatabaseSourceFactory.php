@@ -8,12 +8,11 @@ use Faker\Generator as Faker;
 
 $factory->define(DatabaseSource::class, function (Faker $faker) {
     return [
-        'type' => 'database',
-        'name' => $faker->word,
-        'properties' => json_encode([
-            'server' => $faker->domainName,
-            'username' => $faker->userName,
-            'password' => bcrypt($faker->password)
-        ])
+        'server' => $faker->domainName,
+        'username' => $faker->userName,
+        'password' => bcrypt($faker->password),
+        'db_name' => $faker->word,
+        'db_schema' => $faker->word,
+        'port' => $faker->numberBetween(1000, 9000)
     ];
 });

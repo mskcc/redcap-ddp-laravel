@@ -16,8 +16,25 @@ class CreateDatabaseSourcesTable extends Migration
         Schema::create('data_sources', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name')->unique()->index();
-            $table->string('type')->index();
-            $table->json('properties');
+            $table->integer('source_id');
+            $table->string('source_type');
+            $table->timestamps();
+        });
+
+        Schema::create('database_sources', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('server');
+            $table->string('username');
+            $table->string('password');
+            $table->string('db_name');
+            $table->string('db_schema')->nullable();
+            $table->integer('port')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('webservice_sources', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('url');
             $table->timestamps();
         });
 
@@ -30,6 +47,8 @@ class CreateDatabaseSourcesTable extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('webservice_sources');
+        Schema::dropIfExists('database_sources');
         Schema::dropIfExists('data_sources');
     }
 }
