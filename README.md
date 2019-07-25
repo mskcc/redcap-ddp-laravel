@@ -5,7 +5,9 @@ Dynamic Data Pull (DDP) is a special feature for importing data into REDCap from
 
 ***Note: This repo is under active development and should not be used in a production environment.***
 
-### Features
+### Planned Features
 - Data, Metadata, and User Access capabilities
 - Service providers for web service and relational data stores
+- Support for database (MySQL, SQL Server, DB2, and PostgresSQL) and web service data retrieval
+- An administration portal to manage your data sources and REDCap project metadata
 
