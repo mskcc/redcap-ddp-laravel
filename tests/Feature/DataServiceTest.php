@@ -52,10 +52,10 @@ class DataServiceTest extends TestCase
         ]);
 
         factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'query' => "SELECT date_of_birth from dbo.patient",
-            'data_source' => 'internal_data_warehouse'
-        ]);
+        'name' => 'dob',
+        'query' => "SELECT date_of_birth from dbo.patient",
+        'data_source' => 'internal_data_warehouse'
+    ]);
 
         $databaseSource = factory(DatabaseSource::class)->create([
             'server' => '127.0.0.1'

@@ -46,7 +46,7 @@ class DatabaseConnectionFactory
                 throw new \Exception("database connection type `{$this->dbSource->dbType->name}` not supported.");
         }
 
-        return $connection->execute();
+        return $connection->executeQuery();
     }
 
     protected function formatResult($field, $value)
