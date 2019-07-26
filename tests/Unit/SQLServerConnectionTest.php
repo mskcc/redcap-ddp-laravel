@@ -30,7 +30,8 @@ class SQLServerConnectionTest extends TestCase
         ]);
 
         $this->databaseSource = factory(DatabaseSource::class)->create([
-            'server' => '127.0.0.1'
+            'server' => '127.0.0.1',
+            'port' => null
         ]);
 
         $this->dataSource = factory(DataSource::class)->make([
@@ -46,7 +47,7 @@ class SQLServerConnectionTest extends TestCase
     {
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        $this->assertEquals('127.0.0.1', $sqlServerConnection->server);
+        $this->assertEquals('127.0.0.1', $sqlServerConnection->serverName);
 
         $this->assertNull($this->databaseSource->port);
 
