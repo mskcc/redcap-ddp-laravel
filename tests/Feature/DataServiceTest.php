@@ -43,6 +43,8 @@ class DataServiceTest extends TestCase
     /** @test */
     public function data_can_be_retrieved_for_a_specific_field()
     {
+        $this->withoutExceptionHandling();
+
         //Arrange
         factory(ProjectMetadata::class)->create([
             'project_id' => 12345,

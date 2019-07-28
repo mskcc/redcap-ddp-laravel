@@ -9,7 +9,7 @@ use Faker\Generator as Faker;
 $factory->define(DatabaseType::class, function (Faker $faker) {
     return [
         'name' => $faker->randomElement([
-           'mysql', 'mssql', 'postgresql', 'db2'
+           'mysql', 'sqlserver', 'postgresql', 'db2'
         ])
     ];
 });

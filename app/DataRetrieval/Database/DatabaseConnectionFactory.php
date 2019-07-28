@@ -25,9 +25,9 @@ class DatabaseConnectionFactory
         $this->fieldsource = $fieldsource;
     }
 
-    public function execute()
-    {
+    public function getConnection() {
         $connection = null;
+
         switch($this->dbSource->dbType->name)
         {
             case 'mysql':
@@ -36,7 +36,7 @@ class DatabaseConnectionFactory
             case 'postgresql':
                 $connection = new PostgreSQLConnection($this->dbSource, $this->fieldsource);
                 break;
-            case 'mssql':
+            case 'sqlserver':
                 $connection = new SQLServerConnection($this->dbSource, $this->fieldsource);
                 break;
             case 'db2':
@@ -46,7 +46,12 @@ class DatabaseConnectionFactory
                 throw new \Exception("database connection type `{$this->dbSource->dbType->name}` not supported.");
         }
 
-        return $connection->executeQuery();
+        return $connection;
+    }
+
+    public function execute()
+    {
+        $this->getConnection()->executeQuery();
     }
 
     protected function formatResult($field, $value)

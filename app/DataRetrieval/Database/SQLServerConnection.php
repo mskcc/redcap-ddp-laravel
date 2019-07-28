@@ -23,7 +23,7 @@ class SQLServerConnection extends DatabaseConnectionBase
     public function __construct(DatabaseSource $dbsource, FieldSource $fieldsource)
     {
         parent::__construct($dbsource, $fieldsource);
-        $this->connect();
+        $this->serverName = $this->dbSource->port == null ? $this->dbSource->server : "{$this->dbSource->server}, {$this->dbSource->port}";
     }
 
     public function connect()
@@ -34,10 +34,8 @@ class SQLServerConnection extends DatabaseConnectionBase
             'ReturnDatesAsStrings' => true
         ];
 
-        $this->serverName = $this->dbSource->port == null ? $this->dbSource->server : "{$this->dbSource->server}, {$this->dbSource->port}";
-
         try {
-            $this->connection = sqlsrv_connect($this->dbSource->server, $connection_info);
+            $this->connection = sqlsrv_connect($this->serverName, $connection_info);
             if (!$this->connection) {
                 throw new Exception('There was a problem in connecting to ' . $this->dbSource->dataSource->name);
             }

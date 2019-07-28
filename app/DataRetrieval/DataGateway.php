@@ -4,6 +4,7 @@
 namespace App\DataRetrieval;
 
 use App\DatabaseSource;
+use App\DataRetrieval\Database\DatabaseConnectionFactory;
 use App\DataSource;
 use App\FieldSource;
 use App\ProjectMetadata;
@@ -23,15 +24,20 @@ class DataGateway implements DataGatewayInterface
 
             $fieldSource = FieldSource::where('name', $field->dictionary)->get();
 
-            $fieldSource->each(function($field) use($fieldSource) {
+            $fieldSource->each(function($field) {
 
                 $dataSource = DataSource::with('source')->where('name', $field->data_source)->firstOrFail();
 
                 //Test - what if we have multiple?
                 switch(true) {
                     case $dataSource->source instanceof DatabaseSource:
-                        $query = new DatabaseQuery($dataSource->source, $fieldSource);
-                        return $query->execute();
+
+                        $connection = new DatabaseConnectionFactory($dataSource->source, $field);
+
+                        dd($connection->getConnection());
+
+                        $connection->getConnection()->executeQuery();
+
                         break;
                     case $dataSource->source instanceof WebserviceSource:
                         throw new \Exception('Web service queries are not yet implemented.');

@@ -3,10 +3,14 @@
 namespace Tests\Unit;
 
 use App\DatabaseSource;
+use App\DatabaseType;
 use App\DataRetrieval\Database\DatabaseConnectionFactory;
-use App\DataRetrieval\DatabaseQuery;
+use App\DataRetrieval\Database\DB2Connection;
+use App\DataRetrieval\Database\MySQLConnection;
+use App\DataRetrieval\Database\PostgreSQLConnection;
 use App\DataSource;
 use App\FieldSource;
+use App\DataRetrieval\Database\SqlServerConnection;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,31 +20,59 @@ class DatabaseConnectionFactoryTest extends TestCase
 
     use RefreshDatabase;
 
-    /** @test */
-    function can_execute_a_database_query()
+    private $fieldSource;
+    private $databaseSource;
+    private $dataSource;
+
+    private function setUpDatabaseSource($dbType)
     {
-        $fieldSource = factory(FieldSource::class)->create([
+        $this->fieldSource = factory(FieldSource::class)->create([
             'name' => 'dob',
             'query' => "SELECT date_of_birth from dbo.patient",
             'data_source' => 'internal_data_warehouse'
         ]);
 
-        $databaseSource = factory(DatabaseSource::class)->create([
-            'server' => '127.0.0.1'
+        $this->databaseSource = factory(DatabaseSource::class)->create([
+            'db_type' => factory(DatabaseType::class)->create(['name' => $dbType]),
         ]);
 
-        $dataSource = factory(DataSource::class)->make([
+        $this->dataSource = factory(DataSource::class)->make([
             'name' => 'internal_data_warehouse'
         ]);
 
-        $dataSource->source()->associate($databaseSource);
-        $dataSource->save();
+        $this->dataSource->source()->associate($this->databaseSource);
+        $this->dataSource->save();
+    }
 
-        $query = new DatabaseConnectionFactory($databaseSource, $fieldSource);
-        $return = $query->execute();
+    /** @test */
+    function returns_mysql_connection()
+    {
+        $this->setUpDatabaseSource('mysql');
+        $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
+        $this->assertInstanceOf(MySQLConnection::class, $connection->getConnection());
+    }
 
-        $this->assertIsArray($return);
-        $this->assertArrayHasKey('field', $return);
-        $this->assertArrayHasKey('value', $return);
+    /** @test */
+    function returns_sqlserver_connection()
+    {
+        $this->setUpDatabaseSource('sqlserver');
+        $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
+        $this->assertInstanceOf(SqlServerConnection::class, $connection->getConnection());
+    }
+
+    /** @test */
+    function returns_postgresql_connection()
+    {
+        $this->setUpDatabaseSource('postgresql');
+        $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
+        $this->assertInstanceOf(PostgreSQLConnection::class, $connection->getConnection());
+    }
+
+    /** @test */
+    function returns_db2_connection()
+    {
+        $this->setUpDatabaseSource('db2');
+        $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
+        $this->assertInstanceOf(DB2Connection::class, $connection->getConnection());
     }
 }
