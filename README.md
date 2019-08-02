@@ -14,11 +14,11 @@ Dynamic Data Pull (DDP) is a special feature for importing data into REDCap from
 In order to connect to specific database platforms, you'll need to ensure your system is set up appropriately. The following are some helpful links to get you started:
 
 - MySQL
-  - TBD
+  - https://www.php.net/manual/en/ref.pdo-mysql.php
 - SQL Server
   - https://github.com/Microsoft/msphpsql
 - DB2
-  - TBD
+  - https://www.php.net/manual/en/book.ibm-db2.php
 - PostgresSQL
-  - TBD
+  - https://www.php.net/manual/en/pgsql.installation.php
 
