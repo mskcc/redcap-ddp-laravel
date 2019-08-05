@@ -80,11 +80,46 @@ class SQLServerConnectionTest extends TestCase
 
         $this->queryRunner->allows([
             'sqlsrv_query' => null,
-            'sqlsrv_fetch_array' => []
+            'sqlsrv_fetch_array' => [],
+            'sqlsrv_close' => true
         ]);
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
         $sqlServerConnection->executeQuery();
+    }
+
+    /** @test */
+    function it_will_log_errors_if_sql_statement_fails()
+    {
+        $this->setUpDatabaseSource([
+            'server' => '127.0.0.1',
+            'port' => 999
+        ]);
+
+        $this->queryRunner->allows([
+            'sqlsrv_query' => false,
+            'sqlsrv_fetch_array' => [],
+            'sqlsrv_errors' => [
+                'SQLSTATE' => 'INVALID',
+                'code' => 123,
+                'message' => 'An error occurred.'
+            ],
+            'sqlsrv_close' => true
+        ]);
+
+        $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
+        $sqlServerConnection->executeQuery();
+
+        $records = app('log')
+            ->getHandlers()[0]
+            ->getRecords();
+
+        $this->assertCount(1, $records);
+        $this->assertEquals(
+            'SQLSTATE: INVALID; code: 123; message: An error occurred.',
+            $records[0]['message']
+        );
+
     }
 
     private function setUpDatabaseSource(array $overrides)

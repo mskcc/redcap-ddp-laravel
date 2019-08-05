@@ -8,6 +8,7 @@ use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\FieldSource;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use function foo\func;
 
 class SQLServerConnection extends DatabaseConnectionBase
 {
@@ -49,7 +50,8 @@ class SQLServerConnection extends DatabaseConnectionBase
 
         catch (Exception $e) {
             $this->isConnected = FALSE;
-            //Log Exception and SQL Server Errors
+            Log::error($e->getMessage());
+            Log::error($this->formatErrors($runner->sqlsrv_errors()));
         }
     }
 
@@ -61,6 +63,7 @@ class SQLServerConnection extends DatabaseConnectionBase
 
         if ($resource === false) {
             //Log errors returned by runner
+            Log::error($this->formatErrors($runner->sqlsrv_errors()));
         }
 
         while ($resultSet = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC)){
@@ -80,7 +83,19 @@ class SQLServerConnection extends DatabaseConnectionBase
     {
         $runner = resolve(SQLServerQueryRunner::class);
 
-        //Close the connection
+        $runner->sqlsrv_close();
 
+    }
+
+    /**
+     * Return a formatted string with SQL errors.
+     * @param $errorArray
+     * @return string
+     */
+    protected function formatErrors($errorArray)
+    {
+        return collect($errorArray)->transform(function($item, $key) {
+            return "{$key}: {$item}";
+        })->values()->implode("; ");
     }
 }

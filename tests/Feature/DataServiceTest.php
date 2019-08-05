@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\DatabaseSource;
+use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
+use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataRetrieval\DataGateway;
 use App\DataRetrieval\DataGatewayInterface;
 use App\DataSource;
@@ -17,14 +19,26 @@ class DataServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @var ConcreteSQLServerQueryRunner|\Mockery\MockInterface
+     */
+    private $queryRunner;
+    /**
+     * @var DataGateway
+     */
+    private $datagateway;
+
     public function setUp() : void
     {
         parent::setUp();
         $this->datagateway = new DataGateway();
         $this->app->instance(DataGatewayInterface::class, $this->datagateway);
+        $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
+        $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
+
     }
 
-        /** @test */
+    /** @test */
     public function data_service_endpoint_accepts_POST_with_valid_params()
     {
 
@@ -54,10 +68,10 @@ class DataServiceTest extends TestCase
         ]);
 
         factory(FieldSource::class)->create([
-        'name' => 'dob',
-        'query' => "SELECT date_of_birth from dbo.patient",
-        'data_source' => 'internal_data_warehouse'
-    ]);
+            'name' => 'dob',
+            'query' => "SELECT date_of_birth from dbo.patient",
+            'data_source' => 'internal_data_warehouse'
+        ]);
 
         $databaseSource = factory(DatabaseSource::class)->create([
             'server' => '127.0.0.1'
@@ -81,8 +95,5 @@ class DataServiceTest extends TestCase
 
         $response->assertStatus(200);
     }
-
-
-
 
 }
