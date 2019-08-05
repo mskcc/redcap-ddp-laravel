@@ -34,7 +34,7 @@ class DataGateway implements DataGatewayInterface
 
                         $connection = new DatabaseConnectionFactory($dataSource->source, $field);
 
-                        dd($connection->getConnection());
+                        //dd($connection->getConnection());
 
                         $connection->getConnection()->executeQuery();
 
