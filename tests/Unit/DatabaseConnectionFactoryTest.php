@@ -8,6 +8,8 @@ use App\DataRetrieval\Database\DatabaseConnectionFactory;
 use App\DataRetrieval\Database\DB2Connection;
 use App\DataRetrieval\Database\MySQLConnection;
 use App\DataRetrieval\Database\PostgreSQLConnection;
+use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
+use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataSource;
 use App\FieldSource;
 use App\DataRetrieval\Database\SqlServerConnection;
@@ -56,6 +58,21 @@ class DatabaseConnectionFactoryTest extends TestCase
     function returns_sqlserver_connection()
     {
         $this->setUpDatabaseSource('sqlserver');
+
+        if( !defined( "SQLSRV_FETCH_ASSOC" )){
+            define( "SQLSRV_FETCH_ASSOC", 2 );
+        }
+        if( !defined( "SQLSRV_ERR_ALL" )){
+            define( "SQLSRV_ERR_ALL", 2 );
+        }
+
+        $queryRunner  = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
+        $this->app->instance(SQLServerQueryRunner::class, $queryRunner);
+
+        $queryRunner->allows([
+            'sqlsrv_connect' => true
+        ]);
+
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
         $this->assertInstanceOf(SqlServerConnection::class, $connection->getConnection());
     }
@@ -75,4 +92,6 @@ class DatabaseConnectionFactoryTest extends TestCase
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
         $this->assertInstanceOf(DB2Connection::class, $connection->getConnection());
     }
+
+
 }

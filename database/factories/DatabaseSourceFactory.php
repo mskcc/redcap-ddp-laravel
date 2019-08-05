@@ -18,3 +18,9 @@ $factory->define(DatabaseSource::class, function (Faker $faker) {
         'port' => $faker->numberBetween(1000, 9000)
     ];
 });
+
+$factory->state(DatabaseSource::class, 'sqlserver', function (\Faker\Generator $faker) {
+    return [
+        'db_type' => factory(DatabaseType::class)->create(['name' => 'sqlserver']),
+    ];
+});

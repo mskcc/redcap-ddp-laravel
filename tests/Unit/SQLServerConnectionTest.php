@@ -9,6 +9,8 @@ use App\DataRetrieval\Database\Queries\FakeSQLServerQueryRunner;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataRetrieval\Database\SQLServerConnection;
 use App\DataSource;
+use App\Exceptions\DatabaseConnectionException;
+use App\Exceptions\DatabaseQueryException;
 use App\FieldSource;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -34,6 +36,9 @@ class SQLServerConnectionTest extends TestCase
         if( !defined( "SQLSRV_FETCH_ASSOC" )){
             define( "SQLSRV_FETCH_ASSOC", 2 );
         }
+        if( !defined( "SQLSRV_ERR_ALL" )){
+            define( "SQLSRV_ERR_ALL", 2 );
+        }
         $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
         $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
     }
@@ -44,6 +49,10 @@ class SQLServerConnectionTest extends TestCase
         $this->setUpDatabaseSource([
             'server' => '127.0.0.1',
             'port' => null
+        ]);
+
+        $this->queryRunner->allows([
+            'sqlsrv_connect' => true
         ]);
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
@@ -60,6 +69,10 @@ class SQLServerConnectionTest extends TestCase
         $this->setUpDatabaseSource([
             'server' => '127.0.0.1',
             'port' => 999
+        ]);
+
+        $this->queryRunner->allows([
+            'sqlsrv_connect' => true
         ]);
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
@@ -79,24 +92,32 @@ class SQLServerConnectionTest extends TestCase
         ]);
 
         $this->queryRunner->allows([
+            'sqlsrv_connect' => true,
             'sqlsrv_query' => null,
-            'sqlsrv_fetch_array' => [],
-            'sqlsrv_close' => true
+            'sqlsrv_fetch_array' => [
+                'date_of_birth' => '1950-01-01'
+            ],
+            'sqlsrv_close' => true,
+            'sqlsrv_free_stmt' => true
         ]);
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
-        $sqlServerConnection->executeQuery();
+
+        $result = $sqlServerConnection->executeQuery();
+
     }
 
     /** @test */
     function it_will_log_errors_if_sql_statement_fails()
     {
+        $this->expectException(DatabaseQueryException::class);
         $this->setUpDatabaseSource([
             'server' => '127.0.0.1',
             'port' => 999
         ]);
 
         $this->queryRunner->allows([
+            'sqlsrv_connect' => true,
             'sqlsrv_query' => false,
             'sqlsrv_fetch_array' => [],
             'sqlsrv_errors' => [
@@ -117,6 +138,39 @@ class SQLServerConnectionTest extends TestCase
         $this->assertCount(1, $records);
         $this->assertEquals(
             'SQLSTATE: INVALID; code: 123; message: An error occurred.',
+            $records[0]['message']
+        );
+
+    }
+
+    /** @test */
+    function it_will_log_errors_if_sql_connection_fails()
+    {
+        $this->expectException(DatabaseConnectionException::class);
+
+        $this->setUpDatabaseSource([
+            'server' => '127.0.0.1',
+            'port' => 999
+        ]);
+
+        $this->queryRunner->allows([
+            'sqlsrv_connect' => false,
+            'sqlsrv_errors' => [
+                'SQLSTATE' => 'INVALID',
+                'code' => 123,
+                'message' => 'Cannot connect.'
+            ]
+        ]);
+
+        new SQLServerConnection($this->databaseSource, $this->fieldSource);
+
+        $records = app('log')
+            ->getHandlers()[0]
+            ->getRecords();
+
+        $this->assertCount(1, $records);
+        $this->assertEquals(
+            'SQLSTATE: INVALID; code: 123; message: Cannot connect.',
             $records[0]['message']
         );
 

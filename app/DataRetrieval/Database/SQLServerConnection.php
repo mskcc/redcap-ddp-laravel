@@ -5,10 +5,10 @@ namespace App\DataRetrieval\Database;
 
 use App\DatabaseSource;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
+use App\Exceptions\DatabaseConnectionException;
+use App\Exceptions\DatabaseQueryException;
 use App\FieldSource;
-use Exception;
 use Illuminate\Support\Facades\Log;
-use function foo\func;
 
 class SQLServerConnection extends DatabaseConnectionBase
 {
@@ -27,6 +27,7 @@ class SQLServerConnection extends DatabaseConnectionBase
     {
         parent::__construct($dbsource, $fieldsource);
         $this->serverName = $this->dbSource->port == null ? $this->dbSource->server : "{$this->dbSource->server}, {$this->dbSource->port}";
+        $this->connect();
     }
 
     public function connect()
@@ -37,22 +38,13 @@ class SQLServerConnection extends DatabaseConnectionBase
             'ReturnDatesAsStrings' => true
         ];
 
-        try {
-
-            $runner = resolve(SQLServerQueryRunner::class);
-
-            $this->connection = $runner->sqlsrv_connect($this->serverName, $connection_info);
-            if (!$this->connection) {
-                throw new Exception('There was a problem in connecting to ' . $this->dbSource->dataSource->name);
-            }
-            $this->isConnected = TRUE;
-        }
-
-        catch (Exception $e) {
-            $this->isConnected = FALSE;
-            Log::error($e->getMessage());
+        $runner = resolve(SQLServerQueryRunner::class);
+        $this->connection = $runner->sqlsrv_connect($this->serverName, $connection_info);
+        if ($this->connection === false) {
             Log::error($this->formatErrors($runner->sqlsrv_errors()));
+            throw new DatabaseConnectionException('There was a problem in connecting to ' . $this->dbSource->dataSource->name);
         }
+        $this->isConnected = TRUE;
     }
 
     public function executeQuery()
@@ -62,20 +54,21 @@ class SQLServerConnection extends DatabaseConnectionBase
         $resource = $runner->sqlsrv_query($this->connection, $this->fieldsource->query);
 
         if ($resource === false) {
-            //Log errors returned by runner
             Log::error($this->formatErrors($runner->sqlsrv_errors()));
+            throw new DatabaseQueryException('There was an error querying the database.');
         }
 
-        while ($resultSet = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC)){
+        $resultSet = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC);
 
-            $results [] = [
-                'value' => $resultSet
-            ];
+        $results [] = [
+            'value' => $resultSet
+        ];
 
-            $runner->sqlsrv_free_stmt($resource);
-        }
+        $runner->sqlsrv_free_stmt($resource);
 
         $this->close();
+
+        return $results;
 
     }
 
@@ -83,7 +76,7 @@ class SQLServerConnection extends DatabaseConnectionBase
     {
         $runner = resolve(SQLServerQueryRunner::class);
 
-        $runner->sqlsrv_close();
+        $runner->sqlsrv_close($this->connection);
 
     }
 

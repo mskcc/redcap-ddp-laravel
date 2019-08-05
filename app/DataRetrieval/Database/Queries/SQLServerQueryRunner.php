@@ -4,14 +4,9 @@ namespace App\DataRetrieval\Database\Queries;
 
 interface SQLServerQueryRunner
 {
-    /**
-     * @param $connection
-     * @param $query
-     * @return resource|bool
-     */
-    public function sqlsrv_query($connection, $query);
-    public function sqlsrv_connect();
-    public function sqlsrv_close();
-    public function sqlsrv_errors();
-    public function sqlsrv_fetch_array();
+    public function sqlsrv_query($conn, $tsql, $params = [], $options = []);
+    public function sqlsrv_connect($server_name, $connection_info = []);
+    public function sqlsrv_close($conn);
+    public function sqlsrv_errors($errorsAndOrWarnings = SQLSRV_ERR_ALL);
+    public function sqlsrv_fetch_array($stmt, $fetch_type = null, $row=null, $offset=null);
 }

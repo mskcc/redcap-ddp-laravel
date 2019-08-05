@@ -35,13 +35,11 @@ class DataServiceTest extends TestCase
         $this->app->instance(DataGatewayInterface::class, $this->datagateway);
         $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
         $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
-
     }
 
     /** @test */
     public function data_service_endpoint_accepts_POST_with_valid_params()
     {
-
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
             'id' => '54321',
@@ -82,6 +80,7 @@ class DataServiceTest extends TestCase
         ]);
 
         $dataSource->source()->associate($databaseSource);
+
         $dataSource->save();
 
         //Act, simulates post from REDCap

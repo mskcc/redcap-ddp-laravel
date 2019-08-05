@@ -2,38 +2,30 @@
 
 namespace App\DataRetrieval\Database\Queries;
 
-use mysql_xdevapi\Exception;
-
 class ConcreteSQLServerQueryRunner implements SQLServerQueryRunner
 {
-
-    public function sqlsrv_query($connection, $query)
+    public function sqlsrv_connect($server_name, $connection_info = [])
     {
-        // TODO: Implement sqlsrv_query() method.
-        throw new \Exception('Not yet implemented.');
+        return sqlsrv_connect($server_name, $connection_info);
     }
 
-    public function sqlsrv_connect()
+    public function sqlsrv_close($conn)
     {
-        // TODO: Implement sqlsrv_connect() method.
-        throw new \Exception('Not yet implemented.');
+        return sqlsrv_close($conn);
     }
 
-    public function sqlsrv_close()
+    public function sqlsrv_errors($errorsAndOrWarnings = SQLSRV_ERR_ALL)
     {
-        // TODO: Implement sqlsrv_close() method.
-        throw new \Exception('Not yet implemented.');
+        return sqlsrv_errors($errorsAndOrWarnings);
     }
 
-    public function sqlsrv_errors()
+    public function sqlsrv_fetch_array($stmt, $fetch_type = null, $row = null, $offset = null)
     {
-        // TODO: Implement sqlsrv_errors() method.
-        throw new \Exception('Not yet implemented.');
+        return sqlsrv_fetch_array($stmt, $fetch_type, $row, $offset);
     }
 
-    public function sqlsrv_fetch_array()
+    public function sqlsrv_query($conn, $tsql, $params = [], $options = [])
     {
-        // TODO: Implement sqlsrv_fetch_array() method.
-        throw new \Exception('Not yet implemented.');
+        return sqlsrv_query($conn, $tsql, $params, $options);
     }
 }
