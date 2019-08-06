@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
+use App\DataRetrieval\DataGateway;
+use App\DataRetrieval\DataGatewayInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SQLServerQueryRunner::class,
             ConcreteSQLServerQueryRunner::class
+        );
+
+        $this->app->bind(
+            DataGatewayInterface::class,
+            DataGateway::class
         );
     }
 

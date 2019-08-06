@@ -14,13 +14,13 @@ $factory->define(DatabaseSource::class, function (Faker $faker) {
         'password' => bcrypt($faker->password),
         'db_name' => $faker->word,
         'db_schema' => $faker->word,
-        'db_type' => factory(DatabaseType::class)->create(),
+        'db_type' => $faker->randomElement(DatabaseType::all(['id'])),
         'port' => $faker->numberBetween(1000, 9000)
     ];
 });
 
 $factory->state(DatabaseSource::class, 'sqlserver', function (\Faker\Generator $faker) {
     return [
-        'db_type' => factory(DatabaseType::class)->create(['name' => 'sqlserver']),
+        'db_type' => DatabaseType::where('name', 'sqlserver')->first()
     ];
 });

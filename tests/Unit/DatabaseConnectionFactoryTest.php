@@ -35,7 +35,7 @@ class DatabaseConnectionFactoryTest extends TestCase
         ]);
 
         $this->databaseSource = factory(DatabaseSource::class)->create([
-            'db_type' => factory(DatabaseType::class)->create(['name' => $dbType]),
+            'db_type' => DatabaseType::where('name', $dbType)->first()
         ]);
 
         $this->dataSource = factory(DataSource::class)->make([

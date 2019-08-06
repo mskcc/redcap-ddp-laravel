@@ -25,6 +25,14 @@ class MetadataServiceTest extends TestCase
 
 
     /** @test */
+    public function metadata_service_endpoint_returns_422_if_required_params_are_missing()
+    {
+        $response = $this->post('/api/metadata');
+
+        $response->assertStatus(422);
+    }
+
+    /** @test */
     public function metadata_service_endpoint_returns_mapping_fields_from_a_project_config()
     {
         factory(ProjectMetadata::class)->create([
