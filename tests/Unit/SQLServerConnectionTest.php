@@ -146,33 +146,48 @@ class SQLServerConnectionTest extends TestCase
     /** @test */
     function it_will_log_errors_if_sql_connection_fails()
     {
-        $this->expectException(DatabaseConnectionException::class);
+        try {
+            $this->setUpDatabaseSource([
+                'server' => '127.0.0.1',
+                'port' => 999
+            ]);
 
-        $this->setUpDatabaseSource([
-            'server' => '127.0.0.1',
-            'port' => 999
-        ]);
+            $this->queryRunner->allows([
+                'sqlsrv_connect' => false,
+                'sqlsrv_errors' => [
+                    [
+                        0 => 'HYT00',
+                        'SQLSTATE' => 'HYT00',
+                        1 => 0,
+                        'code' => 0,
+                        2 => '[Microsoft][ODBC Driver 17 for SQL Server]Login timeout expired',
+                        'message' => '[Microsoft][ODBC Driver 17 for SQL Server]Login timeout expired'
+                    ],
+                    [
+                        0 => '08001',
+                        'SQLSTATE' => '08001',
+                        1 => 10057,
+                        'code' => 10057,
+                        2 => '[Microsoft][ODBC Driver 17 for SQL Server]TCP Provider: Error code 0x2749',
+                        'message' => '[Microsoft][ODBC Driver 17 for SQL Server]TCP Provider: Error code 0x2749'
+                    ]
+                ]
+            ]);
 
-        $this->queryRunner->allows([
-            'sqlsrv_connect' => false,
-            'sqlsrv_errors' => [
-                'SQLSTATE' => 'INVALID',
-                'code' => 123,
-                'message' => 'Cannot connect.'
-            ]
-        ]);
+            new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        new SQLServerConnection($this->databaseSource, $this->fieldSource);
+        } catch (DatabaseConnectionException $e) {
+            $records = app('log')
+                ->getHandlers()[0]
+                ->getRecords();
 
-        $records = app('log')
-            ->getHandlers()[0]
-            ->getRecords();
 
-        $this->assertCount(1, $records);
-        $this->assertEquals(
-            'SQLSTATE: INVALID; code: 123; message: Cannot connect.',
-            $records[0]['message']
-        );
+            $this->assertCount(1, $records);
+            $this->assertEquals(
+                'SQLSTATE: HYT00, code: 0, message: [Microsoft][ODBC Driver 17 for SQL Server]Login timeout expired|SQLSTATE: 08001, code: 10057, message: [Microsoft][ODBC Driver 17 for SQL Server]TCP Provider: Error code 0x2749',
+                $records[0]['message']);
+        }
+
 
     }
 

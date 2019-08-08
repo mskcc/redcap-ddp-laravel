@@ -87,8 +87,12 @@ class SQLServerConnection extends DatabaseConnectionBase
      */
     protected function formatErrors($errorArray)
     {
-        return collect($errorArray)->transform(function($item, $key) {
-            return "{$key}: {$item}";
-        })->values()->implode("; ");
+
+        return collect($errorArray)->map(function($e){
+           return collect($e)->only(['SQLSTATE', 'code', 'message'])->transform(function($item, $key) {
+              return "{$key}: {$item}";
+           })->values()->join(', ');
+        })->join('|');
+
     }
 }
