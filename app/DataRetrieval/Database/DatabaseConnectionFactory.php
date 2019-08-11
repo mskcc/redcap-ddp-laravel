@@ -54,11 +54,4 @@ class DatabaseConnectionFactory
         $this->getConnection()->executeQuery();
     }
 
-    protected function formatResult($field, $value)
-    {
-        return [
-            'field' => $field, 'value' => $value
-        ];
-    }
-
 }

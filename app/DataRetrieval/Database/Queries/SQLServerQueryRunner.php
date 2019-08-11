@@ -9,4 +9,5 @@ interface SQLServerQueryRunner
     public function sqlsrv_close($conn);
     public function sqlsrv_errors($errorsAndOrWarnings = SQLSRV_ERR_ALL);
     public function sqlsrv_fetch_array($stmt, $fetch_type = null, $row=null, $offset=null);
+    public function sqlsrv_free_stmt($stmt) : bool;
 }

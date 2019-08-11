@@ -53,9 +53,13 @@ class DataServiceTest extends TestCase
     }
 
     /** @test */
-    public function data_can_be_retrieved_for_a_specific_field()
+    public function data_can_be_retrieved_from_sql_server_for_a_specific_field()
     {
         $this->withoutExceptionHandling();
+
+        $this->queryRunner->allows($this->successfulQuery([
+            'date_of_birth' => '1950-01-01'
+        ]));
 
         //Arrange
         factory(ProjectMetadata::class)->create([
@@ -71,7 +75,7 @@ class DataServiceTest extends TestCase
             'data_source' => 'internal_data_warehouse'
         ]);
 
-        $databaseSource = factory(DatabaseSource::class)->create([
+        $databaseSource = factory(DatabaseSource::class)->state('sqlserver')->create([
             'server' => '127.0.0.1'
         ]);
 
@@ -93,6 +97,24 @@ class DataServiceTest extends TestCase
         ]);
 
         $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'field' => 'birth_date',
+            'value' => '1950-01-01'
+        ]);
+
+    }
+
+
+    private function successfulQuery($withData = [])
+    {
+        return [
+            'sqlsrv_connect' => true,
+            'sqlsrv_query' => [],
+            'sqlsrv_fetch_array' => $withData,
+            'sqlsrv_close' => true,
+            'sqlsrv_errors' => null,
+            'sqlsrv_free_stmt' => true
+        ];
     }
 
 }

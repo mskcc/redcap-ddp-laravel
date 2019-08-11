@@ -50,7 +50,6 @@ class SQLServerConnection extends DatabaseConnectionBase
     public function executeQuery()
     {
         $runner = resolve(SQLServerQueryRunner::class);
-        $results = [];
         $resource = $runner->sqlsrv_query($this->connection, $this->fieldsource->query);
 
         if ($resource === false) {
@@ -60,16 +59,11 @@ class SQLServerConnection extends DatabaseConnectionBase
 
         $resultSet = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC);
 
-        $results [] = [
-            'value' => $resultSet
-        ];
-
         $runner->sqlsrv_free_stmt($resource);
 
         $this->close();
 
-        return $results;
-
+        return $resultSet;
     }
 
     public function close()
@@ -87,7 +81,6 @@ class SQLServerConnection extends DatabaseConnectionBase
      */
     protected function formatErrors($errorArray)
     {
-
         return collect($errorArray)->map(function($e){
            return collect($e)->only(['SQLSTATE', 'code', 'message'])->transform(function($item, $key) {
               return "{$key}: {$item}";

@@ -14,17 +14,19 @@ class DataGateway implements DataGatewayInterface
 {
     public function retrieve($project, $fieldList = [])
     {
-        $metadata = ProjectMetadata::where('project_id', $project)->get();
+        $allMetadata = ProjectMetadata::where('project_id', $project)->get();
 
         $fields = $fieldList->flatten(1)->toArray();
 
-        $requestedData = $metadata->whereIn('field', $fields);
+        $requestedData = $allMetadata->whereIn('field', $fields);
 
-        $requestedData->each(function($field) {
+        $json = collect();
 
-            $fieldSource = FieldSource::where('name', $field->dictionary)->get();
+        $requestedData->each(function($fieldMetadata) use ($json) {
 
-            $fieldSource->each(function($field) {
+            $fieldSource = FieldSource::where('name', $fieldMetadata->dictionary)->get();
+
+            $fieldSource->each(function($field) use ($json, $fieldMetadata) {
 
                 $dataSource = DataSource::with('source')->where('name', $field->data_source)->firstOrFail();
 
@@ -34,9 +36,7 @@ class DataGateway implements DataGatewayInterface
 
                         $connection = new DatabaseConnectionFactory($dataSource->source, $field);
 
-                        $connection->getConnection()->executeQuery();
-
-                        //
+                        $json->add($this->formatResult($fieldMetadata->field, $connection->getConnection()->executeQuery()));
 
                         break;
                     case $dataSource->source instanceof WebserviceSource:
@@ -46,14 +46,18 @@ class DataGateway implements DataGatewayInterface
                         return null;
                 }
 
-
-
             });
 
         });
 
-        return [];
+        return $json->toArray();
+    }
 
+    protected function formatResult($field, $value)
+    {
+        return [
+            'field' => $field, 'value' => collect($value)->first()
+        ];
     }
 
 }

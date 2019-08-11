@@ -28,4 +28,9 @@ class ConcreteSQLServerQueryRunner implements SQLServerQueryRunner
     {
         return sqlsrv_query($conn, $tsql, $params, $options);
     }
+
+    public function sqlsrv_free_stmt($stmt) : bool
+    {
+        return sqlsrv_free_stmt($stmt);
+    }
 }
