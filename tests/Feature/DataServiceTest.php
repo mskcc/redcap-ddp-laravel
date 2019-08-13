@@ -3,14 +3,19 @@
 namespace Tests\Feature;
 
 use App\DatabaseSource;
+use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
 use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
+use App\DataRetrieval\Database\Queries\DB2QueryRunner;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataRetrieval\DataGateway;
 use App\DataRetrieval\DataGatewayInterface;
 use App\DataSource;
+use App\Factories\DatabaseSourceFactory;
 use App\FieldSource;
 use App\ProjectMetadata;
 use Symfony\Component\VarDumper\Cloner\Data;
+use Tests\Stubs\DB2;
+use Tests\Stubs\SQLServer;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,10 +24,8 @@ class DataServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @var ConcreteSQLServerQueryRunner|\Mockery\MockInterface
-     */
     private $queryRunner;
+
     /**
      * @var DataGateway
      */
@@ -33,8 +36,6 @@ class DataServiceTest extends TestCase
         parent::setUp();
         $this->datagateway = new DataGateway();
         $this->app->instance(DataGatewayInterface::class, $this->datagateway);
-        $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
-        $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
     }
 
     /** @test */
@@ -56,36 +57,14 @@ class DataServiceTest extends TestCase
     public function data_can_be_retrieved_from_sql_server_for_a_specific_field()
     {
         $this->withoutExceptionHandling();
+        $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
+        $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
 
-        $this->queryRunner->allows($this->successfulQuery([
+        DatabaseSourceFactory::type('sqlserver');
+
+        $this->queryRunner->allows(SQLServer::successfulQuery([
             'date_of_birth' => '1950-01-01'
         ]));
-
-        //Arrange
-        factory(ProjectMetadata::class)->create([
-            'project_id' => 12345,
-            'field' => 'birth_date',
-            'label' => 'Subject Birth Date',
-            'dictionary' => 'dob'
-        ]);
-
-        factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'query' => "SELECT date_of_birth from dbo.patient",
-            'data_source' => 'internal_data_warehouse'
-        ]);
-
-        $databaseSource = factory(DatabaseSource::class)->state('sqlserver')->create([
-            'server' => '127.0.0.1'
-        ]);
-
-        $dataSource = factory(DataSource::class)->make([
-            'name' => 'internal_data_warehouse'
-        ]);
-
-        $dataSource->source()->associate($databaseSource);
-
-        $dataSource->save();
 
         //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [
@@ -104,17 +83,32 @@ class DataServiceTest extends TestCase
 
     }
 
-
-    private function successfulQuery($withData = [])
+    /** @test */
+    public function data_can_be_retrieved_from_db2_for_a_specific_field()
     {
-        return [
-            'sqlsrv_connect' => true,
-            'sqlsrv_query' => [],
-            'sqlsrv_fetch_array' => $withData,
-            'sqlsrv_close' => true,
-            'sqlsrv_errors' => null,
-            'sqlsrv_free_stmt' => true
-        ];
+        $this->withoutExceptionHandling();
+        $this->queryRunner = \Mockery::mock(ConcreteDB2QueryRunner::class);
+        $this->app->instance(DB2QueryRunner::class, $this->queryRunner);
+        DatabaseSourceFactory::type('db2');
+
+        $this->queryRunner->allows(DB2::successfulQuery([
+            'date_of_birth' => '1950-01-01'
+        ]));
+
+        //Act, simulates post from REDCap
+        $response = $this->postJson('/api/data', [
+            'project_id' => '12345',
+            'id' => '54321',
+            'fields' => [
+                ['field' => 'birth_date']
+            ]
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'field' => 'birth_date',
+            'value' => '1950-01-01'
+        ]);
     }
 
 }

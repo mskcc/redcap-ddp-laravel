@@ -8,7 +8,9 @@ use App\DataRetrieval\Database\DatabaseConnectionFactory;
 use App\DataRetrieval\Database\DB2Connection;
 use App\DataRetrieval\Database\MySQLConnection;
 use App\DataRetrieval\Database\PostgreSQLConnection;
+use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
 use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
+use App\DataRetrieval\Database\Queries\DB2QueryRunner;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataSource;
 use App\FieldSource;
@@ -89,6 +91,14 @@ class DatabaseConnectionFactoryTest extends TestCase
     function returns_db2_connection()
     {
         $this->setUpDatabaseSource('db2');
+
+        $queryRunner  = \Mockery::mock(ConcreteDB2QueryRunner::class);
+        $this->app->instance(DB2QueryRunner::class, $queryRunner);
+
+        $queryRunner->allows([
+            'db2_connect' => true
+        ]);
+
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
         $this->assertInstanceOf(DB2Connection::class, $connection->getConnection());
     }

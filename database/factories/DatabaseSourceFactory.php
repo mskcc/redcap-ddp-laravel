@@ -24,3 +24,9 @@ $factory->state(DatabaseSource::class, 'sqlserver', function (\Faker\Generator $
         'db_type' => DatabaseType::where('name', 'sqlserver')->first()
     ];
 });
+
+$factory->state(DatabaseSource::class, 'db2', function (\Faker\Generator $faker) {
+    return [
+        'db_type' => DatabaseType::where('name', 'db2')->first()
+    ];
+});
