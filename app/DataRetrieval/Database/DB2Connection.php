@@ -8,6 +8,7 @@ use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
 use App\DataRetrieval\Database\Queries\DB2QueryRunner;
 use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\Exceptions\DatabaseConnectionException;
+use App\Exceptions\DatabaseQueryException;
 use App\FieldSource;
 use Illuminate\Support\Facades\Log;
 
@@ -28,23 +29,24 @@ class DB2Connection extends DatabaseConnectionBase
      */
     private $isConnected;
 
+    private $runner;
+
     public function __construct(DatabaseSource $dbsource, FieldSource $fieldsource)
     {
         parent::__construct($dbsource, $fieldsource);
         $this->connectionString = "DRIVER={IBM DB2 ODBC DRIVER};DATABASE={$this->dbSource->db_name};" .
             "HOSTNAME={$this->dbSource->server};PORT={$this->dbSource->port};PROTOCOL=TCPIP;UID={$this->dbSource->username};PWD={$this->dbSource->password};";
 
+        $this->runner = resolve(DB2QueryRunner::class);
         $this->connect();
     }
 
     public function connect()
     {
-        $runner = resolve(DB2QueryRunner::class);
-
-        $this->connection = $runner->db2_connect($this->connectionString, '', '');
+        $this->connection = $this->runner->db2_connect($this->connectionString, '', '');
 
         if ($this->connection === false) {
-            Log::error($this->formatErrors($runner->db2_conn_errormsg()));
+            Log::error($this->formatErrors($this->runner->db2_conn_errormsg()));
             throw new DatabaseConnectionException('There was a problem in connecting to ' . $this->dbSource->dataSource->name);
         }
         $this->isConnected = TRUE;
@@ -53,11 +55,23 @@ class DB2Connection extends DatabaseConnectionBase
 
     public function executeQuery()
     {
-        // TODO: Implement executeQuery() method.
+        $resource = $this->runner->db2_prepare($this->connection, $this->fieldsource->query);
+
+        if ($resource === false || $this->runner->db2_execute($resource) === false) {
+            Log::error($this->formatErrors($this->runner->db2_stmt_errormsg($resource)));
+            throw new DatabaseQueryException('There was an error preparing the database query.');
+        }
+
+        $resultSet = $this->runner->db2_fetch_assoc($resource);
+
+        $this->close();
+
+        return $resultSet;
+
     }
 
     public function close()
     {
-        // TODO: Implement close() method.
+        $this->runner->db2_close($this->connection);
     }
 }
