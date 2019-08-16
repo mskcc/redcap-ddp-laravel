@@ -13,6 +13,7 @@ use App\Exceptions\DatabaseConnectionException;
 use App\Exceptions\DatabaseQueryException;
 use App\FieldSource;
 use Mockery\MockInterface;
+use Tests\Stubs\SQLServer;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,9 +52,7 @@ class SQLServerConnectionTest extends TestCase
             'port' => null
         ]);
 
-        $this->queryRunner->allows([
-            'sqlsrv_connect' => true
-        ]);
+        $this->queryRunner->allows(SQLServer::successfulQuery());
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
@@ -71,9 +70,7 @@ class SQLServerConnectionTest extends TestCase
             'port' => 999
         ]);
 
-        $this->queryRunner->allows([
-            'sqlsrv_connect' => true
-        ]);
+        $this->queryRunner->allows(SQLServer::successfulQuery());
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
@@ -91,19 +88,17 @@ class SQLServerConnectionTest extends TestCase
             'port' => 999
         ]);
 
-        $this->queryRunner->allows([
-            'sqlsrv_connect' => true,
-            'sqlsrv_query' => null,
-            'sqlsrv_fetch_array' => [
-                'date_of_birth' => '1950-01-01'
-            ],
-            'sqlsrv_close' => true,
-            'sqlsrv_free_stmt' => true
-        ]);
+        $this->queryRunner->allows(SQLServer::successfulQuery());
+
+        $this->queryRunner->shouldReceive('sqlsrv_fetch_array')
+            ->andReturn(
+                ['fakecolumn' => '12345'],
+                null
+            );
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        $result = $sqlServerConnection->executeQuery();
+        $sqlServerConnection->executeQuery();
 
     }
 
