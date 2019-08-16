@@ -11,6 +11,7 @@ use App\DataRetrieval\DataGateway;
 use App\DataRetrieval\DataGatewayInterface;
 use App\DataSource;
 use App\Factories\DatabaseSourceFactory;
+use App\Factories\ProjectSourceFactory;
 use App\FieldSource;
 use App\ProjectMetadata;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -53,6 +54,7 @@ class DataServiceTest extends TestCase
         $response->assertStatus(200);
     }
 
+
     /** @test */
     public function data_can_be_retrieved_from_sql_server_for_a_specific_field()
     {
@@ -60,11 +62,21 @@ class DataServiceTest extends TestCase
         $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
         $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
 
-        DatabaseSourceFactory::type('sqlserver');
+        $projectId = 12345;
+        ProjectSourceFactory::new()->withMetadata([
+            'project_id' => $projectId,
+            'field' => 'birth_date',
+            'label' => 'Subject Birth Date',
+            'dictionary' => 'dob'
+        ])->backedByDatabase('sqlserver');
 
-        $this->queryRunner->allows(SQLServer::successfulQuery([
-            'date_of_birth' => '1950-01-01'
-        ]));
+        $this->queryRunner->allows(SQLServer::successfulQuery());
+
+        $this->queryRunner->shouldReceive('sqlsrv_fetch_array')
+            ->andReturn(
+                ['bday' => '1950-01-01'],
+                null
+            );
 
         //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [
@@ -76,6 +88,7 @@ class DataServiceTest extends TestCase
         ]);
 
         $response->assertStatus(200);
+
         $response->assertJsonFragment([
             'field' => 'birth_date',
             'value' => '1950-01-01'
@@ -89,11 +102,22 @@ class DataServiceTest extends TestCase
         $this->withoutExceptionHandling();
         $this->queryRunner = \Mockery::mock(ConcreteDB2QueryRunner::class);
         $this->app->instance(DB2QueryRunner::class, $this->queryRunner);
-        DatabaseSourceFactory::type('db2');
 
-        $this->queryRunner->allows(DB2::successfulQuery([
-            'date_of_birth' => '1950-01-01'
-        ]));
+        $projectId = 12345;
+        ProjectSourceFactory::new()->withMetadata([
+            'project_id' => $projectId,
+            'field' => 'birth_date',
+            'label' => 'Subject Birth Date',
+            'dictionary' => 'dob'
+        ])->backedByDatabase('db2');
+
+        $this->queryRunner->allows(DB2::successfulQuery());
+
+        $this->queryRunner->shouldReceive('db2_fetch_assoc')
+            ->andReturn(
+                ['bday' => '1950-01-01'],
+                null
+            );
 
         //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [

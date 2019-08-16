@@ -25,7 +25,7 @@ class DatabaseConnectionFactory
         $this->fieldsource = $fieldsource;
     }
 
-    public function getConnection() {
+    public function createConnection() : DatabaseConnection {
         $connection = null;
 
         switch($this->dbSource->dbType->name)
@@ -51,7 +51,7 @@ class DatabaseConnectionFactory
 
     public function execute()
     {
-        $this->getConnection()->executeQuery();
+        $this->createConnection()->executeQuery();
     }
 
 }

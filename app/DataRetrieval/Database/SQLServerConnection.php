@@ -57,7 +57,11 @@ class SQLServerConnection extends DatabaseConnectionBase
             throw new DatabaseQueryException('There was an error querying the database.');
         }
 
-        $resultSet = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC);
+        $resultSet = [];
+
+        while($row = $runner->sqlsrv_fetch_array($resource, SQLSRV_FETCH_ASSOC)){
+            $resultSet [] = $row;
+        }
 
         $runner->sqlsrv_free_stmt($resource);
 

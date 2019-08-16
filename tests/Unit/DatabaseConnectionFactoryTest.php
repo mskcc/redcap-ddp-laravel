@@ -53,7 +53,7 @@ class DatabaseConnectionFactoryTest extends TestCase
     {
         $this->setUpDatabaseSource('mysql');
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
-        $this->assertInstanceOf(MySQLConnection::class, $connection->getConnection());
+        $this->assertInstanceOf(MySQLConnection::class, $connection->createConnection());
     }
 
     /** @test */
@@ -76,7 +76,7 @@ class DatabaseConnectionFactoryTest extends TestCase
         ]);
 
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
-        $this->assertInstanceOf(SqlServerConnection::class, $connection->getConnection());
+        $this->assertInstanceOf(SqlServerConnection::class, $connection->createConnection());
     }
 
     /** @test */
@@ -84,7 +84,7 @@ class DatabaseConnectionFactoryTest extends TestCase
     {
         $this->setUpDatabaseSource('postgresql');
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
-        $this->assertInstanceOf(PostgreSQLConnection::class, $connection->getConnection());
+        $this->assertInstanceOf(PostgreSQLConnection::class, $connection->createConnection());
     }
 
     /** @test */
@@ -100,7 +100,7 @@ class DatabaseConnectionFactoryTest extends TestCase
         ]);
 
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
-        $this->assertInstanceOf(DB2Connection::class, $connection->getConnection());
+        $this->assertInstanceOf(DB2Connection::class, $connection->createConnection());
     }
 
 

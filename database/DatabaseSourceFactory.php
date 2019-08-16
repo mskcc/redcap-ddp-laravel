@@ -17,9 +17,22 @@ class DatabaseSourceFactory
             'dictionary' => 'dob'
         ]);
 
+        factory(ProjectMetadata::class)->create([
+            'project_id' => 12345,
+            'field' => 'gender',
+            'label' => 'Subject Gender',
+            'dictionary' => 'gender'
+        ]);
+
         factory(FieldSource::class)->create([
             'name' => 'dob',
-            'query' => "SELECT date_of_birth from dbo.patient",
+            'query' => "SELECT date_of_birth from dbo.patient where id = id",
+            'data_source' => 'internal_data_warehouse'
+        ]);
+
+        factory(FieldSource::class)->create([
+            'name' => 'gender',
+            'query' => "SELECT gender from dbo.patient where id = id",
             'data_source' => 'internal_data_warehouse'
         ]);
 
