@@ -188,11 +188,6 @@ class SQLServerConnectionTest extends TestCase
 
     private function setUpDatabaseSource(array $overrides)
     {
-        $this->fieldSource = factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'query' => "SELECT date_of_birth from dbo.patient",
-            'data_source' => 'internal_data_warehouse'
-        ]);
 
         $this->databaseSource = factory(DatabaseSource::class)->create($overrides);
         $this->dataSource = factory(DataSource::class)->make([
@@ -201,5 +196,11 @@ class SQLServerConnectionTest extends TestCase
 
         $this->dataSource->source()->associate($this->databaseSource);
         $this->dataSource->save();
+
+        $this->fieldSource = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'query' => "SELECT date_of_birth from dbo.patient",
+            'data_source_id' => $this->dataSource->id
+        ]);
     }
 }

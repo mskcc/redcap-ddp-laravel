@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Database\Factories\DataSourceFactory;
 use App\DatabaseSource;
 use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
 use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
@@ -62,12 +63,18 @@ class DataServiceTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $projectId = 12345;
-        ProjectSourceFactory::new()->withMetadata([
-            'project_id' => $projectId,
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrc = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'data_source_id' => $dataSrc->id
+        ]);
+
+        factory(ProjectMetadata::class)->create([
+            'project_id' => 12345,
             'field' => 'birth_date',
-            'dictionary' => 'dob'
-        ])->backedByDatabase('sqlserver');
+            'field_source_id' => $fieldSrc->id
+        ]);
 
         $this->dataGateway->shouldReceive('retrieve')
             ->once()
@@ -100,17 +107,30 @@ class DataServiceTest extends TestCase
         $this->withoutExceptionHandling();
 
         $projectId = 12345;
-        ProjectSourceFactory::new()->withMetadata([
+
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrcA = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'data_source_id' => $dataSrc->id
+        ]);
+
+        $fieldSrcB = factory(FieldSource::class)->create([
+            'name' => 'sex',
+            'data_source_id' => $dataSrc->id
+        ]);
+
+        factory(ProjectMetadata::class)->create([
             'project_id' => $projectId,
             'field' => 'birth_date',
-            'dictionary' => 'dob'
-        ])->backedByDatabase('sqlserver');
+            'field_source_id' => $fieldSrcA->id
+        ]);
 
-        ProjectSourceFactory::new()->withMetadata([
+        factory(ProjectMetadata::class)->create([
             'project_id' => $projectId,
             'field' => 'gender',
-            'dictionary' => 'dob'
-        ])->backedByDatabase('sqlserver');
+            'field_source_id' => $fieldSrcB->id
+        ]);
 
         $this->dataGateway->shouldReceive('retrieve')
             ->twice()
@@ -141,6 +161,11 @@ class DataServiceTest extends TestCase
             'value' => '1950-01-01'
         ]);
 
+        $response->assertJsonFragment([
+            'field' => 'gender',
+            'value' => 'M'
+        ]);
+
     }
 
     /** @test */
@@ -148,13 +173,18 @@ class DataServiceTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $projectId = 12345;
-        ProjectSourceFactory::new()->withMetadata([
-            'project_id' => $projectId,
+        $dataSrc = DataSourceFactory::database('db2');
+
+        $fieldSrc = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'data_source_id' => $dataSrc->id
+        ]);
+
+        factory(ProjectMetadata::class)->create([
+            'project_id' => 12345,
             'field' => 'birth_date',
-            'label' => 'Subject Birth Date',
-            'dictionary' => 'dob'
-        ])->backedByDatabase('db2');
+            'field_source_id' => $fieldSrc->id
+        ]);
 
         $this->dataGateway->shouldReceive('retrieve')
             ->once()

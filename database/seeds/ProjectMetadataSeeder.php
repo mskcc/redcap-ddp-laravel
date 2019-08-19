@@ -1,9 +1,22 @@
 <?php
 
+use App\Factories\ProjectSourceFactory;
 use Illuminate\Database\Seeder;
+use Faker\Generator as Faker;
 
 class ProjectMetadataSeeder extends Seeder
 {
+
+    /**
+     * @var Faker
+     */
+    private $faker;
+
+    public function __construct(Faker $faker)
+    {
+        $this->faker = $faker;
+    }
+
     /**
      * Run the database seeds.
      *
@@ -12,13 +25,11 @@ class ProjectMetadataSeeder extends Seeder
     public function run()
     {
 
-        foreach(range(1,20) as $int)
-        {
-            factory(\App\ProjectMetadata::class, 5)->create([
-                'project_id' => $int
+        \App\FieldSource::all()->each(function($fieldSrc) {
+            factory(\App\ProjectMetadata::class)->create([
+                'field_source_id' => $fieldSrc->id
             ]);
-        }
-
+        });
 
     }
 }

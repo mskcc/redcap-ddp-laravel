@@ -13,19 +13,17 @@ use App\WebserviceSource;
 
 class DataGateway implements DataGatewayInterface
 {
-    public function retrieve($field, $fieldMetadata)
+    public function retrieve($fieldMetadata)
     {
-        $dataSource = DataSource::with('source')->where('name', $field->data_source)->firstOrFail();
-
         switch(true) {
-            case $dataSource->source instanceof DatabaseSource:
+            case $fieldMetadata->fieldSource->dataSource->source instanceof DatabaseSource:
 
-                $connection = $this->createDatabaseConnection($dataSource->source, $field);
+                $connection = $this->createDatabaseConnection($fieldMetadata->fieldSource->dataSource->source, $fieldMetadata->name);
 
                 return $this->formatResults($fieldMetadata->field, $connection->executeQuery());
 
                 break;
-            case $dataSource->source instanceof WebserviceSource:
+            case $fieldMetadata->fieldSource->dataSource->source instanceof WebserviceSource:
                 throw new \Exception('Web service queries are not yet implemented.');
                 break;
             default:

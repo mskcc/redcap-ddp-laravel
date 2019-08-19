@@ -26,9 +26,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->cleanDatabase();
         $this->call([
-            ProjectMetadataSeeder::class,
+            DatabaseSourceSeeder::class,
             FieldSourceSeeder::class,
-            DatabaseSourceSeeder::class
+            ProjectMetadataSeeder::class,
         ]);
     }
 

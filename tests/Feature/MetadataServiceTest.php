@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Database\Factories\DataSourceFactory;
+use App\DataSource;
+use App\FieldSource;
 use App\ProjectMetadata;
 use App\User;
 use Tests\TestCase;
@@ -35,16 +38,24 @@ class MetadataServiceTest extends TestCase
     /** @test */
     public function metadata_service_endpoint_returns_mapping_fields_from_a_project_config()
     {
+
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrc = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'data_source_id' => $dataSrc->id
+        ]);
+
         factory(ProjectMetadata::class)->create([
             'project_id' => 12345,
             'field' => 'mrn',
-            'label' => 'Medical Record Number'
+            'field_source_id' => $fieldSrc->id
         ]);
 
         factory(ProjectMetadata::class)->create([
             'project_id' => 12345,
             'field' => 'birth_date',
-            'label' => 'Subject Birth Date'
+            'field_source_id' => $fieldSrc->id
         ]);
 
         //Act, simulates post from REDCap
@@ -64,4 +75,5 @@ class MetadataServiceTest extends TestCase
         ]);
 
     }
+
 }

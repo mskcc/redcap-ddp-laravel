@@ -14,13 +14,22 @@ class DatabaseSourceSeeder extends Seeder
      */
     public function run()
     {
-        $dataSource = factory(DataSource::class)->make([
+        $dataSourceA = factory(DataSource::class)->make([
             'name' => 'internal_data_warehouse'
         ]);
 
-        factory(DatabaseSource::class, 5)->create()->each(function($dbSource) use ($dataSource) {
-            $dataSource->source()->associate($dbSource);
-            $dataSource->save();
+        factory(DatabaseSource::class, 5)->create()->each(function($dbSource) use ($dataSourceA) {
+            $dataSourceA->source()->associate($dbSource);
+            $dataSourceA->save();
+        });
+
+        $dataSourceB = factory(DataSource::class)->make([
+            'name' => 'secondary_db'
+        ]);
+
+        factory(DatabaseSource::class, 5)->create()->each(function($dbSource) use ($dataSourceB) {
+            $dataSourceB->source()->associate($dbSource);
+            $dataSourceB->save();
         });
 
     }

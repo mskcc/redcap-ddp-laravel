@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Database\Factories\DataSourceFactory;
 use App\DatabaseSource;
 use App\DatabaseType;
 use App\DataRetrieval\Database\DatabaseConnectionFactory;
@@ -30,22 +31,16 @@ class DatabaseConnectionFactoryTest extends TestCase
 
     private function setUpDatabaseSource($dbType)
     {
+        $this->dataSource = DataSourceFactory::database($dbType);
+
+        $this->databaseSource = $this->dataSource->source;
+
         $this->fieldSource = factory(FieldSource::class)->create([
             'name' => 'dob',
             'query' => "SELECT date_of_birth from dbo.patient",
-            'data_source' => 'internal_data_warehouse'
+            'data_source_id' => $this->dataSource->id
         ]);
 
-        $this->databaseSource = factory(DatabaseSource::class)->create([
-            'db_type' => DatabaseType::where('name', $dbType)->first()
-        ]);
-
-        $this->dataSource = factory(DataSource::class)->make([
-            'name' => 'internal_data_warehouse'
-        ]);
-
-        $this->dataSource->source()->associate($this->databaseSource);
-        $this->dataSource->save();
     }
 
     /** @test */

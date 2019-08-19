@@ -11,6 +11,12 @@ class FieldSourceSeeder extends Seeder
      */
     public function run()
     {
-        factory(\App\FieldSource::class, 50)->create();
+
+        \App\DataSource::all()->each(function($dataSrc) {
+            factory(\App\FieldSource::class, 10)->create([
+                'data_source_id' => $dataSrc->id
+            ]);
+        });
+
     }
 }
