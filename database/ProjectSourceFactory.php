@@ -8,8 +8,9 @@ use App\ProjectMetadata;
 
 class ProjectSourceFactory
 {
-    private $fieldSource;
-    private $metadata;
+    public $fieldSource;
+
+    public $metadata;
 
     public static function new()
     {
@@ -33,7 +34,7 @@ class ProjectSourceFactory
         return $this;
     }
 
-    public function backedByDatabase($dbType)
+    public function backedByDatabase($dbType = 'sqlserver')
     {
         $dataSource = DataSource::where("name", "=", $this->fieldSource->data_source)->first();
 
@@ -51,6 +52,8 @@ class ProjectSourceFactory
 
             $dataSource->save();
         }
+
+        return $this;
 
     }
 }

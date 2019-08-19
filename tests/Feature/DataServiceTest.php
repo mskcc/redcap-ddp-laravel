@@ -14,6 +14,7 @@ use App\Factories\DatabaseSourceFactory;
 use App\Factories\ProjectSourceFactory;
 use App\FieldSource;
 use App\ProjectMetadata;
+use Mockery\MockInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Tests\Stubs\DB2;
 use Tests\Stubs\SQLServer;
@@ -28,15 +29,16 @@ class DataServiceTest extends TestCase
     private $queryRunner;
 
     /**
-     * @var DataGateway
+     * @var MockInterface
      */
-    private $datagateway;
+    private $dataGateway;
 
     public function setUp() : void
     {
         parent::setUp();
-        $this->datagateway = new DataGateway();
-        $this->app->instance(DataGatewayInterface::class, $this->datagateway);
+
+        $this->dataGateway = \Mockery::mock(DataGateway::class);
+        $this->app->instance(DataGatewayInterface::class, $this->dataGateway);
     }
 
     /** @test */
@@ -59,24 +61,20 @@ class DataServiceTest extends TestCase
     public function data_can_be_retrieved_from_sql_server_for_a_specific_field()
     {
         $this->withoutExceptionHandling();
-        $this->queryRunner = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
-        $this->app->instance(SQLServerQueryRunner::class, $this->queryRunner);
 
         $projectId = 12345;
         ProjectSourceFactory::new()->withMetadata([
             'project_id' => $projectId,
             'field' => 'birth_date',
-            'label' => 'Subject Birth Date',
             'dictionary' => 'dob'
         ])->backedByDatabase('sqlserver');
 
-        $this->queryRunner->allows(SQLServer::successfulQuery());
-
-        $this->queryRunner->shouldReceive('sqlsrv_fetch_array')
-            ->andReturn(
-                ['bday' => '1950-01-01'],
-                null
-            );
+        $this->dataGateway->shouldReceive('retrieve')
+            ->once()
+            ->andReturn([
+                'field' => 'birth_date',
+                'value' => '1950-01-01'
+            ]);
 
         //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [
@@ -97,11 +95,58 @@ class DataServiceTest extends TestCase
     }
 
     /** @test */
+    public function data_can_be_retrieved_from_sql_server_for_multiple_fields()
+    {
+        $this->withoutExceptionHandling();
+
+        $projectId = 12345;
+        ProjectSourceFactory::new()->withMetadata([
+            'project_id' => $projectId,
+            'field' => 'birth_date',
+            'dictionary' => 'dob'
+        ])->backedByDatabase('sqlserver');
+
+        ProjectSourceFactory::new()->withMetadata([
+            'project_id' => $projectId,
+            'field' => 'gender',
+            'dictionary' => 'dob'
+        ])->backedByDatabase('sqlserver');
+
+        $this->dataGateway->shouldReceive('retrieve')
+            ->twice()
+            ->andReturn(
+                [
+                    'field' => 'birth_date',
+                    'value' => '1950-01-01'
+                ],
+                [
+                    'field' => 'gender',
+                    'value' => 'M'
+                ]);
+
+        //Act, simulates post from REDCap
+        $response = $this->postJson('/api/data', [
+            'project_id' => '12345',
+            'id' => '54321',
+            'fields' => [
+                ['field' => 'birth_date'],
+                ['field' => 'gender']
+            ]
+        ]);
+
+        $response->assertStatus(200);
+
+        $response->assertJsonFragment([
+            'field' => 'birth_date',
+            'value' => '1950-01-01'
+        ]);
+
+    }
+
+    /** @test */
     public function data_can_be_retrieved_from_db2_for_a_specific_field()
     {
         $this->withoutExceptionHandling();
-        $this->queryRunner = \Mockery::mock(ConcreteDB2QueryRunner::class);
-        $this->app->instance(DB2QueryRunner::class, $this->queryRunner);
 
         $projectId = 12345;
         ProjectSourceFactory::new()->withMetadata([
@@ -111,13 +156,13 @@ class DataServiceTest extends TestCase
             'dictionary' => 'dob'
         ])->backedByDatabase('db2');
 
-        $this->queryRunner->allows(DB2::successfulQuery());
-
-        $this->queryRunner->shouldReceive('db2_fetch_assoc')
+        $this->dataGateway->shouldReceive('retrieve')
+            ->once()
             ->andReturn(
-                ['bday' => '1950-01-01'],
-                null
-            );
+                [
+                    'field' => 'birth_date',
+                    'value' => '1950-01-01'
+                ]);
 
         //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [
@@ -135,4 +180,10 @@ class DataServiceTest extends TestCase
         ]);
     }
 
+
+    public function tearDown() :void
+    {
+        parent::tearDown();
+        \Mockery::close();
+    }
 }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\DataRetrieval\DataGateway;
 use App\DataRetrieval\DataGatewayInterface;
+use App\FieldSource;
 use App\Http\Requests\DataRequest;
 use App\Http\Controllers\Controller;
+use App\ProjectMetadata;
 use Illuminate\Http\JsonResponse;
 
 class DataController extends Controller
@@ -29,6 +31,20 @@ class DataController extends Controller
 
         $fieldList = collect($request->input('fields'));
 
-        return response()->json($this->dataGateway->retrieve($project, $fieldList), 200);
+        $allMetadata = ProjectMetadata::where('project_id', $project)->get();
+
+        $requestedData = $allMetadata->whereIn('field', $fieldList->pluck('field'));
+
+        $json = collect();
+
+        $requestedData->each(function($fieldMetadata) use ($json) {
+
+            $fieldSource = FieldSource::where('name', $fieldMetadata->dictionary)->firstOrFail();
+
+            $json->add($this->dataGateway->retrieve($fieldSource, $fieldMetadata));
+
+        });
+
+        return response()->json($json, 200);
     }
 }
