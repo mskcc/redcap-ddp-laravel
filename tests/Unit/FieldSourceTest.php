@@ -37,10 +37,4 @@ class FieldSourceTest extends TestCase
     }
 
 
-    /** @test */
-    public function will_throw_if_identifier_is_not_a_number()
-    {
-        $this->fail('Not yet implemented');
-    }
-
 }

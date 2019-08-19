@@ -168,6 +168,65 @@ class DataServiceTest extends TestCase
 
     }
 
+
+    /** @test */
+    public function data_can_be_retrieved_from_sql_server_for_a_temporal_field()
+    {
+        $this->withoutExceptionHandling();
+
+        $projectId = 12345;
+
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrcA = factory(FieldSource::class)->create([
+            'name' => 'glucoseTOL',
+            'data_source_id' => $dataSrc->id
+        ]);
+
+        factory(ProjectMetadata::class)->create([
+            'project_id' => $projectId,
+            'field' => 'glucoseTolerance',
+            'temporal' => 1,
+            'field_source_id' => $fieldSrcA->id
+        ]);
+
+        $this->dataGateway->shouldReceive('retrieve')
+            ->once()
+            ->andReturn([
+                ['field' => 'glucoseTolerance', 'value' => '124', 'timestamp' => '2013-09-04 06:55'],
+                ['field' => 'glucoseTolerance', 'value' => '105', 'timestamp' => '2013-09-05 08:23'],
+                ['field' => 'glucoseTolerance', 'value' => '91', 'timestamp' => '2013-09-05 10:09']
+            ]);
+
+        //Act, simulates post from REDCap
+        $response = $this->postJson('/api/data', [
+            'project_id' => '12345',
+            'id' => '54321',
+            'fields' => [
+                [
+                    'field' => 'glucoseTolerance',
+                    'timestamp_min' => '2013-09-03 10:51:00',
+                    'timestamp_max' => '2013-09-07 10:51:00'
+                ],
+                [
+                    'field' => 'glucoseTolerance',
+                    'timestamp_min' => '2013-09-05 00:00:00',
+                    'timestamp_max' => '2013-09-09 00:00:00'
+                ],
+            ]
+        ]);
+
+        $response->assertStatus(200);
+        dd($response->json());
+
+        $response->assertJsonFragment([
+            'field' => 'glucoseTolerance',
+            'value' => '124',
+            'timestamp' => '2013-09-04 06:55'
+        ]);
+
+    }
+
     /** @test */
     public function data_can_be_retrieved_from_db2_for_a_specific_field()
     {
