@@ -3,12 +3,9 @@
 namespace Tests\Feature;
 
 use App\Database\Factories\DataSourceFactory;
-use App\DataSource;
 use App\FieldSource;
 use App\ProjectMetadata;
-use App\User;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class MetadataServiceTest extends TestCase

@@ -1,6 +1,5 @@
 <?php
 
-use App\Factories\ProjectSourceFactory;
 use Illuminate\Database\Seeder;
 use Faker\Generator as Faker;
 

@@ -2,21 +2,17 @@
 
 namespace Tests\Unit;
 
-use App\DatabaseSource;
 use App\DataRetrieval\Database\SQLServerConnection;
-use App\DataSource;
-use App\Exceptions\DatabaseConnectionException;
-use App\Exceptions\DatabaseQueryException;
-use App\FieldSource;
 use Illuminate\Support\Facades\DB;
 use Mockery\MockInterface;
+use Tests\CreatesFakeDatabaseSources;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\SqlServerConnection as CoreSqlServerConnection;
 
 class SQLServerConnectionTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesFakeDatabaseSources;
 
     private $fieldSource;
     private $databaseSource;
@@ -88,21 +84,4 @@ class SQLServerConnectionTest extends TestCase
 
     }
 
-
-    private function setUpDatabaseSource(array $overrides, $query = null)
-    {
-        $this->databaseSource = factory(DatabaseSource::class)->create($overrides);
-        $this->dataSource = factory(DataSource::class)->make([
-            'name' => 'internal_data_warehouse'
-        ]);
-
-        $this->dataSource->source()->associate($this->databaseSource);
-        $this->dataSource->save();
-
-        $this->fieldSource = factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'query' => $query ?? "SELECT date_of_birth from dbo.patient",
-            'data_source_id' => $this->dataSource->id
-        ]);
-    }
 }

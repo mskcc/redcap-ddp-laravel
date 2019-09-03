@@ -10,17 +10,25 @@ use App\DataSource;
 use App\FieldSource;
 use App\ProjectMetadata;
 use App\WebserviceSource;
+use phpDocumentor\Reflection\Project;
 
 class DataGateway implements DataGatewayInterface
 {
-    public function retrieve($fieldMetadata)
+
+    /**
+     * Retrieve data, given a configured ProjectMetadata entity.
+     * @param ProjectMetadata $fieldMetadata
+     * @return array|null
+     * @throws \Exception
+     */
+    public function retrieve(ProjectMetadata $fieldMetadata)
     {
         switch(true) {
             case $fieldMetadata->fieldSource->dataSource->source instanceof DatabaseSource:
 
-                $connection = $this->createDatabaseConnection($fieldMetadata->fieldSource->dataSource->source, $fieldMetadata->name);
+                $connection = $this->createDatabaseConnection($fieldMetadata->fieldSource->dataSource->source, $fieldMetadata->fieldSource);
 
-                return $this->formatResults($fieldMetadata->field, $connection->executeQuery());
+                return $this->formatResults($fieldMetadata, $connection->executeQuery());
 
                 break;
             case $fieldMetadata->fieldSource->dataSource->source instanceof WebserviceSource:
@@ -32,19 +40,41 @@ class DataGateway implements DataGatewayInterface
 
     }
 
-    public function formatResults($field, $resultSet)
+    /**
+     * Format the results of the data retrieval operation for REDCap
+     * @param ProjectMetadata $metadata
+     * @param $resultSet
+     * @return array
+     */
+    public function formatResults(ProjectMetadata $metadata, $resultSet)
     {
-        $return = collect($resultSet)->map(function($rows) use ($field) {
-            return collect($rows)->map(function($value) use ($field) {
-                return [
-                    'field' => $field, 'value' => $value
-                ];
-            })->values();
-        })->toArray();
-        return $return;
+        $res = collect($resultSet)->map(function($row) use ($metadata) {
+
+            $columnName = $metadata->fieldSource->column;
+            $fieldName = $metadata->field;
+
+            $tmpResults = ['field' => $fieldName, 'value' => $row->$columnName];
+
+            if($metadata->temporal) {
+                $anchor_date = $metadata->fieldSource->anchor_date;
+
+                array_push($tmpResults, ['timestamp' => $row->$anchor_date]);
+            }
+
+            return $tmpResults;
+        });
+
+        return $res->all();
     }
 
-    public function createDatabaseConnection($source, $field) : DatabaseConnection
+    /**
+     * Create a database connection, given a database source and a field source.
+     * @param DatabaseSource $source
+     * @param FieldSource $field
+     * @return DatabaseConnection
+     * @throws \Exception
+     */
+    public function createDatabaseConnection(DatabaseSource $source, FieldSource $field) : DatabaseConnection
     {
         $factory = new DatabaseConnectionFactory($source, $field);
         return $factory->createConnection();

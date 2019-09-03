@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
         FieldSource::class,
         DataSource::class,
         DatabaseSource::class,
-
     ];
 
     /**

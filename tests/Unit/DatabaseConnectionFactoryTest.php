@@ -3,21 +3,13 @@
 namespace Tests\Unit;
 
 use App\Database\Factories\DataSourceFactory;
-use App\DatabaseSource;
-use App\DatabaseType;
 use App\DataRetrieval\Database\DatabaseConnectionFactory;
 use App\DataRetrieval\Database\DB2Connection;
 use App\DataRetrieval\Database\MySQLConnection;
 use App\DataRetrieval\Database\PostgreSQLConnection;
-use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
-use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
-use App\DataRetrieval\Database\Queries\DB2QueryRunner;
-use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
-use App\DataSource;
 use App\FieldSource;
 use App\DataRetrieval\Database\SqlServerConnection;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class DatabaseConnectionFactoryTest extends TestCase
