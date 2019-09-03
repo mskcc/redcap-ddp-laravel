@@ -55,21 +55,6 @@ class DatabaseConnectionFactoryTest extends TestCase
     function returns_sqlserver_connection()
     {
         $this->setUpDatabaseSource('sqlserver');
-
-        if( !defined( "SQLSRV_FETCH_ASSOC" )){
-            define( "SQLSRV_FETCH_ASSOC", 2 );
-        }
-        if( !defined( "SQLSRV_ERR_ALL" )){
-            define( "SQLSRV_ERR_ALL", 2 );
-        }
-
-        $queryRunner  = \Mockery::mock(ConcreteSQLServerQueryRunner::class);
-        $this->app->instance(SQLServerQueryRunner::class, $queryRunner);
-
-        $queryRunner->allows([
-            'sqlsrv_connect' => true
-        ]);
-
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
         $this->assertInstanceOf(SqlServerConnection::class, $connection->createConnection());
     }
@@ -86,14 +71,6 @@ class DatabaseConnectionFactoryTest extends TestCase
     function returns_db2_connection()
     {
         $this->setUpDatabaseSource('db2');
-
-        $queryRunner  = \Mockery::mock(ConcreteDB2QueryRunner::class);
-        $this->app->instance(DB2QueryRunner::class, $queryRunner);
-
-        $queryRunner->allows([
-            'db2_connect' => true
-        ]);
-
         $connection = new DatabaseConnectionFactory($this->databaseSource, $this->fieldSource);
         $this->assertInstanceOf(DB2Connection::class, $connection->createConnection());
     }

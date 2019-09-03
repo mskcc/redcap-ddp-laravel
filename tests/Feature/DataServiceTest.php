@@ -17,8 +17,6 @@ use App\FieldSource;
 use App\ProjectMetadata;
 use Mockery\MockInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
-use Tests\Stubs\DB2;
-use Tests\Stubs\SQLServer;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -217,7 +215,6 @@ class DataServiceTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        dd($response->json());
 
         $response->assertJsonFragment([
             'field' => 'glucoseTolerance',

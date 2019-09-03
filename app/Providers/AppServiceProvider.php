@@ -19,15 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(
-            SQLServerQueryRunner::class,
-            ConcreteSQLServerQueryRunner::class
-        );
-
-        $this->app->bind(
-            DB2QueryRunner::class,
-            ConcreteDB2QueryRunner::class
-        );
 
         $this->app->bind(
             DataGatewayInterface::class,
