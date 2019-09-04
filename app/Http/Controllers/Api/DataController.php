@@ -31,7 +31,7 @@ class DataController extends Controller
 
         $fieldList = collect($request->input('fields'));
 
-        $allMetadata = ProjectMetadata::with('fieldSource')->where('project_id', $project)->get();
+        $allMetadata = ProjectMetadata::with('fieldSource.dataSource.source.dbType')->where('project_id', $project)->get();
 
         $requestedData = $allMetadata->whereIn('field', $fieldList->pluck('field'));
 

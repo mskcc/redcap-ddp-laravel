@@ -8,12 +8,23 @@ use App\Model;
 use App\ProjectMetadata;
 use Faker\Generator as Faker;
 
-$factory->define(\App\FieldSource::class, function (Faker $faker) {
+$factory->define(FieldSource::class, function (Faker $faker) {
 
     $field = $faker->word;
+    $col = strtoupper($field);
+
     return [
         'name' => $field,
-        'query' => @"SELECT {$field} FROM PATIENT",
+        'column' => $col,
+        'query' => @"SELECT {$field} AS {$col} FROM PATIENT",
         'temporal' => false
+    ];
+});
+
+
+$factory->state(FieldSource::class, 'temporal', function (\Faker\Generator $faker) {
+    return [
+        'temporal' => true,
+        'anchor_date' => 'CREATED_AT'
     ];
 });

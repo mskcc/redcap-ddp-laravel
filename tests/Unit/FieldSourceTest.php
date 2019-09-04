@@ -4,8 +4,6 @@ namespace Tests\Unit;
 
 use App\FieldSource;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class FieldSourceTest extends TestCase
 {
