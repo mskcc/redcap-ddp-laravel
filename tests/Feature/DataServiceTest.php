@@ -3,43 +3,27 @@
 namespace Tests\Feature;
 
 use App\Database\Factories\DataSourceFactory;
-use App\DatabaseSource;
-use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
-use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
-use App\DataRetrieval\Database\Queries\DB2QueryRunner;
-use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
-use App\DataRetrieval\DataGateway;
-use App\DataRetrieval\DataGatewayInterface;
-use App\DataSource;
-use App\Factories\DatabaseSourceFactory;
-use App\Factories\ProjectSourceFactory;
 use App\FieldSource;
 use App\ProjectMetadata;
+use Illuminate\Database\SqlServerConnection as CoreSqlServerConnection;
+use Illuminate\Support\Facades\DB;
 use Mockery\MockInterface;
-use Symfony\Component\VarDumper\Cloner\Data;
-use Tests\Stubs\DB2;
-use Tests\Stubs\SQLServer;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class DataServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private $queryRunner;
-
     /**
-     * @var MockInterface
+     * @var CoreSqlServerConnection|MockInterface
      */
-    private $dataGateway;
+    private $connection;
 
     public function setUp() : void
     {
         parent::setUp();
 
-        $this->dataGateway = \Mockery::mock(DataGateway::class);
-        $this->app->instance(DataGatewayInterface::class, $this->dataGateway);
     }
 
     /** @test */
@@ -67,23 +51,27 @@ class DataServiceTest extends TestCase
 
         $fieldSrc = factory(FieldSource::class)->create([
             'name' => 'dob',
-            'data_source_id' => $dataSrc->id
+            'data_source_id' => $dataSrc->id,
+            'column' => 'bday'
         ]);
 
-        factory(ProjectMetadata::class)->create([
+        $project = factory(ProjectMetadata::class)->make([
             'project_id' => 12345,
             'field' => 'birth_date',
-            'field_source_id' => $fieldSrc->id
         ]);
 
-        $this->dataGateway->shouldReceive('retrieve')
-            ->once()
-            ->andReturn([
-                'field' => 'birth_date',
-                'value' => '1950-01-01'
-            ]);
+        $project->fieldSource()->associate($fieldSrc);
+        $project->save();
 
-        //Act, simulates post from REDCap
+        $this->connection = \Mockery::mock(CoreSqlServerConnection::class);
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+        $this->connection->shouldReceive('select')
+            ->andReturn([
+                    (object)['bday' => '1950-01-01', 'created_at' => '2019-01-01']
+                ]
+            );
+
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
             'id' => '54321',
@@ -106,45 +94,47 @@ class DataServiceTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $projectId = 12345;
-
         $dataSrc = DataSourceFactory::database('sqlserver');
 
         $fieldSrcA = factory(FieldSource::class)->create([
             'name' => 'dob',
-            'data_source_id' => $dataSrc->id
+            'data_source_id' => $dataSrc->id,
+            'column' => 'bday'
         ]);
+
+        $projectA = factory(ProjectMetadata::class)->make([
+            'project_id' => 12345,
+            'field' => 'birth_date',
+        ]);
+        $projectA->fieldSource()->associate($fieldSrcA);
+        $projectA->save();
 
         $fieldSrcB = factory(FieldSource::class)->create([
             'name' => 'sex',
-            'data_source_id' => $dataSrc->id
+            'data_source_id' => $dataSrc->id,
+            'column' => 'SEX'
         ]);
 
-        factory(ProjectMetadata::class)->create([
-            'project_id' => $projectId,
-            'field' => 'birth_date',
-            'field_source_id' => $fieldSrcA->id
-        ]);
-
-        factory(ProjectMetadata::class)->create([
-            'project_id' => $projectId,
+        $projectB = factory(ProjectMetadata::class)->make([
+            'project_id' => 12345,
             'field' => 'gender',
-            'field_source_id' => $fieldSrcB->id
         ]);
+        $projectB->fieldSource()->associate($fieldSrcB);
+        $projectB->save();
 
-        $this->dataGateway->shouldReceive('retrieve')
-            ->twice()
+        $this->connection = \Mockery::mock(CoreSqlServerConnection::class);
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+        $this->connection->shouldReceive('select')
             ->andReturn(
                 [
-                    'field' => 'birth_date',
-                    'value' => '1950-01-01'
+                    (object)['bday' => '1950-01-01', 'created_at' => '2019-01-01']
                 ],
                 [
-                    'field' => 'gender',
-                    'value' => 'M'
-                ]);
+                    (object)['SEX' => 'M', 'created_at' => '2019-01-01']
+                ]
+            );
 
-        //Act, simulates post from REDCap
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
             'id' => '54321',
@@ -178,27 +168,36 @@ class DataServiceTest extends TestCase
 
         $dataSrc = DataSourceFactory::database('sqlserver');
 
-        $fieldSrcA = factory(FieldSource::class)->create([
+        $fieldSrcA = factory(FieldSource::class)->state('temporal')->create([
             'name' => 'glucoseTOL',
-            'data_source_id' => $dataSrc->id
+            'data_source_id' => $dataSrc->id,
+            'column' => 'GLUCOSETOL',
+            'anchor_date' => 'CREATED_AT'
         ]);
 
-        factory(ProjectMetadata::class)->create([
+        $project = factory(ProjectMetadata::class)->make([
             'project_id' => $projectId,
             'field' => 'glucoseTolerance',
-            'temporal' => 1,
-            'field_source_id' => $fieldSrcA->id
+            'temporal' => 1
         ]);
 
-        $this->dataGateway->shouldReceive('retrieve')
-            ->once()
-            ->andReturn([
-                ['field' => 'glucoseTolerance', 'value' => '124', 'timestamp' => '2013-09-04 06:55'],
-                ['field' => 'glucoseTolerance', 'value' => '105', 'timestamp' => '2013-09-05 08:23'],
-                ['field' => 'glucoseTolerance', 'value' => '91', 'timestamp' => '2013-09-05 10:09']
-            ]);
+        $project->fieldSource()->associate($fieldSrcA);
+        $project->save();
 
-        //Act, simulates post from REDCap
+        $this->connection = \Mockery::mock(CoreSqlServerConnection::class);
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+        $this->connection->shouldReceive('select')
+            ->andReturn(
+                [
+                    (object)['GLUCOSETOL' => '181', 'CREATED_AT' => '2013-09-01 14:32'],
+                    (object)['GLUCOSETOL' => '124', 'CREATED_AT' => '2013-09-04 06:55'],
+                    (object)['GLUCOSETOL' => '105', 'CREATED_AT' => '2013-09-05 08:23'],
+                    (object)['GLUCOSETOL' => '91', 'CREATED_AT' => '2013-09-05 10:09']
+                ]
+            );
+
+
         $response = $this->postJson('/api/data', [
             'project_id' => '12345',
             'id' => '54321',
@@ -217,7 +216,6 @@ class DataServiceTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        dd($response->json());
 
         $response->assertJsonFragment([
             'field' => 'glucoseTolerance',
@@ -226,49 +224,6 @@ class DataServiceTest extends TestCase
         ]);
 
     }
-
-    /** @test */
-    public function data_can_be_retrieved_from_db2_for_a_specific_field()
-    {
-        $this->withoutExceptionHandling();
-
-        $dataSrc = DataSourceFactory::database('db2');
-
-        $fieldSrc = factory(FieldSource::class)->create([
-            'name' => 'dob',
-            'data_source_id' => $dataSrc->id
-        ]);
-
-        factory(ProjectMetadata::class)->create([
-            'project_id' => 12345,
-            'field' => 'birth_date',
-            'field_source_id' => $fieldSrc->id
-        ]);
-
-        $this->dataGateway->shouldReceive('retrieve')
-            ->once()
-            ->andReturn(
-                [
-                    'field' => 'birth_date',
-                    'value' => '1950-01-01'
-                ]);
-
-        //Act, simulates post from REDCap
-        $response = $this->postJson('/api/data', [
-            'project_id' => '12345',
-            'id' => '54321',
-            'fields' => [
-                ['field' => 'birth_date']
-            ]
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonFragment([
-            'field' => 'birth_date',
-            'value' => '1950-01-01'
-        ]);
-    }
-
 
     public function tearDown() :void
     {

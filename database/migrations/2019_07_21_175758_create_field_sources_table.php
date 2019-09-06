@@ -16,9 +16,10 @@ class CreateFieldSourcesTable extends Migration
         Schema::create('field_sources', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('column');
             $table->string('query');
             $table->string('data_source');
-            $table->dateTime('anchor_date')->nullable();
+            $table->string('anchor_date')->nullable();
             $table->boolean('temporal')->default(0);
             $table->timestamps();
         });

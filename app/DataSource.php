@@ -8,5 +8,5 @@ class DataSource extends Model
 {
     public function source() {
         return $this->morphTo();
-   }
+    }
 }
