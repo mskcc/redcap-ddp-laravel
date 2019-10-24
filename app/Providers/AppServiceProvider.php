@@ -2,12 +2,9 @@
 
 namespace App\Providers;
 
-use App\DataRetrieval\Database\Queries\ConcreteDB2QueryRunner;
-use App\DataRetrieval\Database\Queries\ConcreteSQLServerQueryRunner;
-use App\DataRetrieval\Database\Queries\DB2QueryRunner;
-use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 use App\DataRetrieval\DataGateway;
 use App\DataRetrieval\DataGatewayInterface;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +30,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Schema::defaultStringLength(191);
     }
 }

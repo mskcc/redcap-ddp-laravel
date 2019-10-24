@@ -56,7 +56,9 @@ This project is built with Laravel, and to make local development easier it prov
     DB_PASSWORD=secret
     ```
 
-6. Next, run the ``vagrant up`` command in your terminal and access your project at ``http://homestead.test`` in your browser. Remember, you will still need to add an ``/etc/hosts`` file entry for ``homestead.test`` or the domain of your choice if you are not using automatic [hostname resolution](https://laravel.com/docs/5.8/homestead#hostname-resolution).
+6. Run the command `php artisan key:generate` 
+
+7. Next, run the ``vagrant up`` command in your terminal and access your project at ``http://homestead.test`` in your browser. Remember, you will still need to add an ``/etc/hosts`` file entry for ``homestead.test`` or the domain of your choice if you are not using automatic [hostname resolution](https://laravel.com/docs/5.8/homestead#hostname-resolution). Also make sure you have an SSH key generated to SSH into the Vagrant box.
 
 To learn more about how Homestead is configured or for installation specific guidance, please see the [documentation](https://laravel.com/docs/5.8/homestead).
 
