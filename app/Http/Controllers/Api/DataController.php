@@ -29,6 +29,8 @@ class DataController extends Controller
     {
         $project = $request->input('project_id');
 
+        $id = $request->input('id');
+
         $fieldList = collect($request->input('fields'));
 
         $allMetadata = ProjectMetadata::with('fieldSource.dataSource.source.dbType')->where('project_id', $project)->get();
@@ -37,9 +39,9 @@ class DataController extends Controller
 
         $json = collect();
 
-        $requestedData->each(function($fieldMetadata) use ($json) {
+        $requestedData->each(function($fieldMetadata) use ($json, $id) {
 
-            $json->add($this->dataGateway->retrieve($fieldMetadata));
+            $json->add($this->dataGateway->retrieve($fieldMetadata, $id));
 
         });
 
