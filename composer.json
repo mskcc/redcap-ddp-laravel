@@ -12,7 +12,8 @@
         "barryvdh/laravel-cors": "^0.11.4",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "5.8.*",
-        "laravel/tinker": "^1.0"
+        "laravel/tinker": "^1.0",
+        "cooperl/laravel-db2": "~5.8"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
