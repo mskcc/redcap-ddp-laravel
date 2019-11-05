@@ -21,14 +21,14 @@ class DataGateway implements DataGatewayInterface
      * @return array|null
      * @throws \Exception
      */
-    public function retrieve(ProjectMetadata $fieldMetadata)
+    public function retrieve(ProjectMetadata $fieldMetadata, $id)
     {
         switch(true) {
             case $fieldMetadata->fieldSource->dataSource->source instanceof DatabaseSource:
 
                 $connection = $this->createDatabaseConnection($fieldMetadata->fieldSource->dataSource->source, $fieldMetadata->fieldSource);
 
-                return $this->formatResults($fieldMetadata, $connection->executeQuery());
+                return $this->formatResults($fieldMetadata, $connection->executeQuery($id));
 
                 break;
             case $fieldMetadata->fieldSource->dataSource->source instanceof WebserviceSource:

@@ -26,10 +26,10 @@ abstract class DatabaseConnectionBase implements DatabaseConnection
         $this->fieldsource = $fieldsource;
     }
 
-    public function executeQuery()
+    public function executeQuery($id)
     {
         try {
-            return DB::connection($this->dbSource->dataSource->name)->select($this->fieldsource->query);
+            return DB::connection($this->dbSource->dataSource->name)->select($this->fieldsource->getQueryFor($id));
         } catch (\Exception $e)
         {
             Log::error($e->getMessage());

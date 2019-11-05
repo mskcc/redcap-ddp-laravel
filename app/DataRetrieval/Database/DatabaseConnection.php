@@ -6,5 +6,5 @@ use App\DataRetrieval\Database\Queries\SQLServerQueryRunner;
 
 interface DatabaseConnection
 {
-    public function executeQuery();
+    public function executeQuery($id);
 }
