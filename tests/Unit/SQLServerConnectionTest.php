@@ -41,6 +41,8 @@ class SQLServerConnectionTest extends TestCase
             'port' => 999
         ], "SELECT * FROM TEST_TABLE;");
 
+        $fakeId = '12345';
+
         DB::shouldReceive('connection')->andReturn($this->connection);
         $this->connection->shouldReceive('select')->with('SELECT * FROM TEST_TABLE;')
             ->andReturn([
@@ -50,7 +52,7 @@ class SQLServerConnectionTest extends TestCase
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        $results = $sqlServerConnection->executeQuery();
+        $results = $sqlServerConnection->executeQuery($fakeId);
 
         $this->assertEquals(12345, $results[0]->fakecolumn);
     }
@@ -63,6 +65,8 @@ class SQLServerConnectionTest extends TestCase
             'port' => 999
         ], "SELECT * FROM TEST_TABLE;");
 
+        $fakeId = '12345';
+
         DB::shouldReceive('connection')->andReturn($this->connection);
 
         $this->connection->shouldReceive('select')->with('SELECT * FROM TEST_TABLE;')
@@ -70,7 +74,7 @@ class SQLServerConnectionTest extends TestCase
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        $sqlServerConnection->executeQuery();
+        $sqlServerConnection->executeQuery($fakeId);
 
         $records = app('log')
             ->getHandlers()[0]

@@ -11,7 +11,7 @@ use App\ProjectMetadata;
 
 interface DataGatewayInterface
 {
-    public function retrieve(ProjectMetadata $fieldMetadata);
+    public function retrieve(ProjectMetadata $fieldMetadata, $id);
     public function formatResults(ProjectMetadata $projectMetadata, $resultSet);
     public function createDatabaseConnection(DatabaseSource $source, FieldSource $field) : DatabaseConnection;
 }
