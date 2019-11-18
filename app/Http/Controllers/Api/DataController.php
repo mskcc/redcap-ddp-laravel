@@ -40,11 +40,14 @@ class DataController extends Controller
         $json = collect();
 
         $requestedData->each(function($fieldMetadata) use ($json, $id) {
-
-            $json->add($this->dataGateway->retrieve($fieldMetadata, $id));
+            $results = $this->dataGateway->retrieve($fieldMetadata, $id);
+            foreach($results as $result){
+                $json->add($result);
+            }
 
         });
 
+        
         return response()->json($json, 200);
     }
 }
