@@ -11,6 +11,7 @@ use App\FieldSource;
 use App\ProjectMetadata;
 use App\WebserviceSource;
 use phpDocumentor\Reflection\Project;
+use Illuminate\Support\Arr;
 
 class DataGateway implements DataGatewayInterface
 {
@@ -52,15 +53,25 @@ class DataGateway implements DataGatewayInterface
 
             $columnName = $metadata->fieldSource->column;
             $fieldName = $metadata->field;
-
-            $tmpResults = ['field' => $fieldName, 'value' => $row->$columnName];
+            $valueMappings = $metadata->fieldSource->valueMappings;
+            $fieldSourceValue = $row->$columnName;
+            $tmpResults = ['field' => $fieldName, 'value' => $fieldSourceValue];
+            
+            if(!$valueMappings->isEmpty()){
+                foreach($valueMappings as $mapping){
+                    if($mapping->field_source_value == $fieldSourceValue){
+                        $tmpResults['value'] = $mapping->redcap_value;
+                        break;
+                    }
+                }
+            }
 
             if($metadata->temporal) {
                 $anchor_date = $metadata->fieldSource->anchor_date;
 
                 array_push($tmpResults, ['timestamp' => $row->$anchor_date]);
             }
-
+            
             return $tmpResults;
         });
 
