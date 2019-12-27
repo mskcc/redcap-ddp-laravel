@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Database\Factories\DataSourceFactory;
 use App\FieldSource;
 use App\ProjectMetadata;
+use App\ValueMapping;
 use Illuminate\Database\SqlServerConnection as CoreSqlServerConnection;
 use Illuminate\Support\Facades\DB;
 use Mockery\MockInterface;
@@ -224,6 +225,70 @@ class DataServiceTest extends TestCase
         ]);
 
     }
+
+    /** @test */
+    public function data_can_be_retrieved_from_sql_server_for_a_mapped_field()
+    {
+        $this->withoutExceptionHandling();
+
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrc = factory(FieldSource::class)->create([
+            'name' => 'gender',
+            'data_source_id' => $dataSrc->id,
+            'column' => 'gender'
+        ]);
+
+        $project = factory(ProjectMetadata::class)->make([
+            'project_id' => 12345,
+            'field' => 'gender',
+        ]);
+
+        $project->fieldSource()->associate($fieldSrc);
+        $project->save();
+
+        $male = factory(ValueMapping::class)->make([
+            'field_source_value' => 'M',
+            'redcap_value' => '1'
+        ]);
+
+        $male->fieldSource()->associate($fieldSrc);
+        $male->save();
+
+        $female = factory(ValueMapping::class)->make([
+            'field_source_value' => 'F',
+            'redcap_value' => '2'
+        ]);
+
+        $female->fieldSource()->associate($fieldSrc);
+        $female->save();
+
+        $this->connection = \Mockery::mock(CoreSqlServerConnection::class);
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+        $this->connection->shouldReceive('select')
+            ->andReturn([
+                    (object)['gender' => 'M', 'created_at' => '2019-01-01']
+                ]
+            );
+
+        $response = $this->postJson('/api/data', [
+            'project_id' => '12345',
+            'id' => '54321',
+            'fields' => [
+                ['field' => 'gender']
+            ]
+        ]);
+
+        $response->assertStatus(200);
+
+        $response->assertJsonFragment([
+            'field' => 'gender',
+            'value' => '1'
+        ]);
+
+    }
+
 
     public function tearDown() :void
     {

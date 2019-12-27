@@ -27,4 +27,8 @@ class FieldSource extends Model
         return $this->belongsTo(DataSource::class);
     }
 
+    public function valueMappings()
+    {
+    	return $this->hasMany(ValueMapping::class);
+    }
 }
