@@ -59,7 +59,7 @@ class DataGateway implements DataGatewayInterface
             
             if(!$valueMappings->isEmpty()){
                 foreach($valueMappings as $mapping){
-                    if($mapping->field_source_value == $fieldSourceValue){
+                    if($mapping->field_source_value == trim($fieldSourceValue)){
                         $tmpResults['value'] = $mapping->redcap_value;
                         break;
                     }
