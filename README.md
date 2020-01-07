@@ -3,11 +3,11 @@ A [Laravel](https://laravel.com/) implementation of the Dynamic Data Pull (DDP) 
 
 Dynamic Data Pull (DDP) is a special feature for importing data into REDCap from an external source system. It provides an adjudication process whereby REDCap users can approve all incoming data from the source system before it is officially saved in their REDCap project.
 
-***Note: This repo is under active development and should not be used in a production environment until we reach a ``1.x`` milestone.***
-
-### Planned Features
+### Features
 - Data, Metadata, and User Access capabilities
 - Support for database (MySQL, SQL Server, DB2, and PostgresSQL) and web service data retrieval
+
+### Planned Features
 - An administration portal to manage your data sources and REDCap project metadata
 
 ### Getting Started
@@ -71,7 +71,7 @@ The following are some helpful links to get you started:
   - https://www.php.net/manual/en/ref.pdo-mysql.php
 - SQL Server
   - https://github.com/Microsoft/msphpsql
-- DB2 (_Not yet supported_)
+- DB2
   - https://www.php.net/manual/en/book.ibm-db2.php
 - PostgresSQL
   - https://www.php.net/manual/en/pgsql.installation.php
