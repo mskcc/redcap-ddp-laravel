@@ -39,14 +39,15 @@ class SQLServerConnectionTest extends TestCase
         $this->setUpDatabaseSource([
             'server' => '127.0.0.1',
             'port' => 999
-        ], "SELECT * FROM TEST_TABLE;");
+        ], "SELECT fakecolumn FROM TEST_TABLE WHERE id = ?");
 
-        $fakeId = '12345';
+        $fakeId = 12345;
 
         DB::shouldReceive('connection')->andReturn($this->connection);
-        $this->connection->shouldReceive('select')->with('SELECT * FROM TEST_TABLE;')
+
+        $this->connection->shouldReceive('select')->with('SELECT fakecolumn FROM TEST_TABLE WHERE id = ?', [$fakeId])
             ->andReturn([
-                    (object)['fakecolumn' => '12345']
+                    (object)['fakecolumn' => 12345]
                 ]
             );
 
@@ -63,13 +64,13 @@ class SQLServerConnectionTest extends TestCase
         $this->setUpDatabaseSource([
             'server' => '127.0.0.1',
             'port' => 999
-        ], "SELECT * FROM TEST_TABLE;");
+        ], "SELECT fakecolumn FROM TEST_TABLE WHERE id = ?");
 
-        $fakeId = '12345';
+        $fakeId = 12345;
 
         DB::shouldReceive('connection')->andReturn($this->connection);
 
-        $this->connection->shouldReceive('select')->with('SELECT * FROM TEST_TABLE;')
+        $this->connection->shouldReceive('select')->with('SELECT fakecolumn FROM TEST_TABLE WHERE id = ?', [$fakeId])
             ->andThrow(new \Exception('A BAD THING HAPPENED!'));
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
