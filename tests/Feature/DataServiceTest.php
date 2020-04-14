@@ -91,6 +91,52 @@ class DataServiceTest extends TestCase
     }
 
     /** @test */
+    public function returns_error_if_exception_thrown()
+    {
+        $dataSrc = DataSourceFactory::database('sqlserver');
+
+        $fieldSrc = factory(FieldSource::class)->create([
+            'name' => 'dob',
+            'data_source_id' => $dataSrc->id,
+            'column' => 'bday'
+        ]);
+
+        $project = factory(ProjectMetadata::class)->make([
+            'project_id' => 12345,
+            'field' => 'birth_date',
+        ]);
+
+        $project->fieldSource()->associate($fieldSrc);
+        $project->save();
+
+        $this->connection = \Mockery::mock(CoreSqlServerConnection::class);
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+        $this->connection->shouldReceive('select')
+            ->andThrow(new \Exception('A BAD THING HAPPENED!'));
+
+        $response = $this->postJson('/api/data', [
+            'project_id' => '12345',
+            'id' => '54321',
+            'fields' => [
+                ['field' => 'birth_date']
+            ]
+        ]);
+
+        $response->assertStatus(500);
+
+        $response->assertJsonFragment([
+            'errors' => [
+                [
+                    "title" => 'Database connection error',
+                    'detail' => 'There was an issue connecting to the database.',
+                    'status' => '500'
+                ]
+            ]
+        ]);
+    }
+
+    /** @test */
     public function data_can_be_retrieved_from_sql_server_for_multiple_fields()
     {
         $this->withoutExceptionHandling();

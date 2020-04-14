@@ -7,6 +7,7 @@ use App\DatabaseSource;
 use App\FieldSource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Exceptions\DatabaseConnectionException;
 
 abstract class DatabaseConnectionBase implements DatabaseConnection
 {
@@ -33,6 +34,7 @@ abstract class DatabaseConnectionBase implements DatabaseConnection
         } catch (\Exception $e)
         {
             Log::error($e->getMessage());
+            throw new DatabaseConnectionException("There was an issue connecting to the database.");
         }
 
         return false;

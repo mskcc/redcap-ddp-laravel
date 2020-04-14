@@ -12,6 +12,8 @@ use App\ProjectMetadata;
 use App\WebserviceSource;
 use phpDocumentor\Reflection\Project;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
+use App\Exceptions\DatabaseQueryException;
 
 class DataGateway implements DataGatewayInterface
 {
@@ -49,33 +51,42 @@ class DataGateway implements DataGatewayInterface
      */
     public function formatResults(ProjectMetadata $metadata, $resultSet)
     {
-        $res = collect($resultSet)->map(function($row) use ($metadata) {
+        if($resultSet == false){
+            throw new DatabaseQueryException("There was an issue retrieving results from the database.");
+        }
 
-            $columnName = $metadata->fieldSource->column;
-            $fieldName = $metadata->field;
-            $valueMappings = $metadata->fieldSource->valueMappings;
-            $fieldSourceValue = $row->$columnName;
-            $tmpResults = ['field' => $fieldName, 'value' => $fieldSourceValue];
-            
-            if(!$valueMappings->isEmpty()){
-                foreach($valueMappings as $mapping){
-                    if($mapping->field_source_value == trim($fieldSourceValue)){
-                        $tmpResults['value'] = $mapping->redcap_value;
-                        break;
+        try{
+            $res = collect($resultSet)->map(function($row) use ($metadata) {
+                $columnName = $metadata->fieldSource->column;
+                $fieldName = $metadata->field;
+                $valueMappings = $metadata->fieldSource->valueMappings;
+                $fieldSourceValue = $row->$columnName;
+                $tmpResults = ['field' => $fieldName, 'value' => $fieldSourceValue];
+                
+                if(!$valueMappings->isEmpty()){
+                    foreach($valueMappings as $mapping){
+                        if($mapping->field_source_value == trim($fieldSourceValue)){
+                            $tmpResults['value'] = $mapping->redcap_value;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if($metadata->temporal) {
-                $anchor_date = $metadata->fieldSource->anchor_date;
+                if($metadata->temporal) {
+                    $anchor_date = $metadata->fieldSource->anchor_date;
 
-                array_push($tmpResults, ['timestamp' => $row->$anchor_date]);
-            }
-            
-            return $tmpResults;
-        });
+                    array_push($tmpResults, ['timestamp' => $row->$anchor_date]);
+                }
+                
+                return $tmpResults;
+            });
 
-        return $res->all();
+            return $res->all();
+        } catch (\Exception $e)
+        {
+            Log::error($e->getMessage());
+            throw new DatabaseQueryException("There was an issue parsing the query results from the database.");
+        }
     }
 
     /**
