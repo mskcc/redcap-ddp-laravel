@@ -9,6 +9,8 @@ use App\Http\Requests\DataRequest;
 use App\Http\Controllers\Controller;
 use App\ProjectMetadata;
 use Illuminate\Http\JsonResponse;
+use App\Exceptions\DatabaseConnectionException;
+use App\Exceptions\DatabaseQueryException;
 
 class DataController extends Controller
 {
@@ -39,6 +41,7 @@ class DataController extends Controller
 
         $json = collect();
 
+        try{
         $requestedData->each(function($fieldMetadata) use ($json, $id) {
             $results = $this->dataGateway->retrieve($fieldMetadata, $id);
             foreach($results as $result){
@@ -46,7 +49,23 @@ class DataController extends Controller
             }
 
         });
-
+        } catch (DatabaseConnectionException $e)
+        {
+            $errors = array("errors" => array(array(
+                "title" => "Database connection error",
+                "detail" => $e->getMessage(),
+                "status" => "500"
+            )));
+            return response()->json($errors, 500);
+        }catch (DatabaseQueryException $e)
+        {
+            $errors = array("errors" => array(array(
+                "title" => "Database query error",
+                "detail" => $e->getMessage(),
+                "status" => "500"
+            )));
+            return response()->json($errors, 500);
+        }
         
         return response()->json($json, 200);
     }

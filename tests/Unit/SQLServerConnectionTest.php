@@ -9,6 +9,7 @@ use Tests\CreatesFakeDatabaseSources;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\SqlServerConnection as CoreSqlServerConnection;
+use App\Exceptions\DatabaseConnectionException;
 
 class SQLServerConnectionTest extends TestCase
 {
@@ -75,8 +76,12 @@ class SQLServerConnectionTest extends TestCase
 
         $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
 
-        $sqlServerConnection->executeQuery($fakeId);
+        try{
+            $sqlServerConnection->executeQuery($fakeId);
+        } catch(DatabaseConnectionException $e){
 
+        }
+        
         $records = app('log')
             ->getHandlers()[0]
             ->getRecords();
@@ -86,6 +91,29 @@ class SQLServerConnectionTest extends TestCase
             'A BAD THING HAPPENED!',
             $records[0]['message']
         );
+
+    }
+
+    /** @test */
+    function it_will_throw_exception_if_sql_statement_fails()
+    {
+        $this->expectException(DatabaseConnectionException::class);
+        
+        $this->setUpDatabaseSource([
+            'server' => '127.0.0.1',
+            'port' => 999
+        ], "SELECT fakecolumn FROM TEST_TABLE WHERE id = ?");
+
+        $fakeId = 12345;
+
+        DB::shouldReceive('connection')->andReturn($this->connection);
+
+        $this->connection->shouldReceive('select')->with('SELECT fakecolumn FROM TEST_TABLE WHERE id = ?', [$fakeId])
+            ->andThrow(new \Exception('A BAD THING HAPPENED!'));
+
+        $sqlServerConnection = new SQLServerConnection($this->databaseSource, $this->fieldSource);
+
+        $sqlServerConnection->executeQuery($fakeId);
 
     }
 
